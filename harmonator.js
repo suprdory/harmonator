@@ -844,7 +844,7 @@ function createBottomPanel() {
         function (dy, yDragVar0) {
             showWheelsOverride = true;
             // pair.penUp();
-            hg.f1 = Math.min(10, Math.max((1 - 0.001 / pixRat * dy) * yDragVar0, 0))
+            hg.f1 = Math.round(Math.min(10, Math.max((-0.05 / pixRat * dy) + yDragVar0, 0)))
             // pair.penDown();
 
         }, [], [],
@@ -859,9 +859,47 @@ function createBottomPanel() {
     dragButton1.UDarrows = true;
     panel.buttonArray.push(dragButton1);
 
+    let dragButton2 = new PButton(panel, 0.1, 0, 0.1, 1, "f2",
+        function (dy, yDragVar0) {
+            showWheelsOverride = true;
+            // pair.penUp();
+            hg.f2 = Math.round(Math.min(10, Math.max((-0.05 / pixRat * dy) + yDragVar0, 0)))
+            // pair.penDown();
+
+        }, [], [],
+        function () {
+            return hg.f2;
+        },
+        function (isDepressed) {
+            showRadInfo = isDepressed;
+        },
+    )
+    dragButton2.yDrag = true;
+    dragButton2.UDarrows = true;
+    panel.buttonArray.push(dragButton2);
+
+    let dragButton1a = new PButton(panel, 0.2, 0, 0.1, 1, "detune",
+        function (dy, yDragVar0) {
+            showWheelsOverride = true;
+            // pair.penUp();
+            hg.detune1 = (Math.min(1, Math.max((-0.0001 / pixRat * dy) + yDragVar0, -1)))
+            // pair.penDown();
+
+        }, [], [],
+        function () {
+            return hg.detune1;
+        },
+        function (isDepressed) {
+            showRadInfo = isDepressed;
+        },
+    )
+    dragButton1a.yDrag = true;
+    dragButton1a.UDarrows = true;
+    panel.buttonArray.push(dragButton1a);
 
 
-    let dragButton3 = new PButton(panel, 0.1, 0.0, 0.1, 1, "p1",
+
+    let dragButton3 = new PButton(panel, 0.3, 0.0, 0.1, 1, "p1",
         function (dy, yDragVar0) {
             hg.p1 = Math.min(10, Math.max(-0.002 / pixRat * dy + yDragVar0, -10))
         }, [], [],
@@ -877,10 +915,10 @@ function createBottomPanel() {
     panel.buttonArray.push(dragButton3);
 
 
-    let dragButton5 = new PButton(panel, 0.2, 0.0, 0.1, 1, "d1",
+    let dragButton5 = new PButton(panel, 0.4, 0.0, 0.1, 1, "d1",
         function (dy, yDragVar0) {
-            hg.d1 = Math.min(10, Math.max((1-0.01 / pixRat * dy) * yDragVar0, 0.000001))
-            hg.d2 = Math.min(10, Math.max((1-0.01 / pixRat * dy) * yDragVar0, 0.000001))
+            hg.d1 = Math.min(10, Math.max((1 - 0.01 / pixRat * dy) * yDragVar0, 0.000001))
+            hg.d2 = Math.min(10, Math.max((1 - 0.01 / pixRat * dy) * yDragVar0, 0.000001))
         }, [], [],
         function () {
             return hg.d1;
@@ -895,7 +933,7 @@ function createBottomPanel() {
 
 
 
-    let dragButton6 = new PButton(panel, 0.3, 0.0, 0.1, 1, "t0",
+    let dragButton6 = new PButton(panel, 0.5, 0.0, 0.1, 1, "t0",
         function (dy, yDragVar0) {
             hg.t0 = Math.min(10, Math.max((- 0.01 / pixRat * dy) + yDragVar0, -10))
 
@@ -911,7 +949,7 @@ function createBottomPanel() {
     dragButton6.UDarrows = true;
     panel.buttonArray.push(dragButton6)
 
-    let dragButton7 = new PButton(panel, 0.4, 0.0, 0.1, 1, "t",
+    let dragButton7 = new PButton(panel, 0.6, 0.0, 0.1, 1, "t",
         function (dy, yDragVar0) {
             hg.t1 = Math.min(1000, Math.max((1 - 0.01 / pixRat * dy) * yDragVar0, 1))
 
@@ -963,7 +1001,7 @@ function createBottomPanel() {
 
     let dragButton10 = new PButton(panel, 0.9, 0.0, 0.1, 1, "p3",
         function (dy, yDragVar0) {
-            hg.p3 = Math.min(1, Math.max((- 0.0005 / pixRat * dy) + yDragVar0, 0))
+            hg.p3 = Math.min(-10, Math.max((- 0.0005 / pixRat * dy) + yDragVar0, 10))
 
         }, [], [],
         function () {
@@ -1091,55 +1129,6 @@ function wakeGalleryServer() {
         .then(data => console.log(data));
 
 }
-function anim() {
-    if (hg.auto) { requestAnimationFrame(anim); }
-    if (hg.auto) { // & !showColInfo & !showInfo & !showRadInfo) {
-        hg.update();
-    }
-
-    // clear screen
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
-
-    //scaled stuff
-    ctx.setTransform(scl, 0, 0, scl, xOff, yOff)
-    hg.calc()
-    hg.draw()
-    // 
-
-    // fixed stuff
-    ctx.setTransform(1, 0, 0, 1, 0, 0)
-    panelArray.forEach(panel => panel.draw())
-
-    // if (showInfo) {
-    //     pair.drawInfo();
-    // }
-    // if (showRadInfo) {
-    //     pair.drawRadInfo();
-    // }
-    // if (showColInfo) {
-    //     pair.drawColInfo();
-    // }
-
-    if (topPanel.active) {
-        ctx.textAlign = "left"
-        // ctx.fillText('auto: ' + hg.auto, 20, uiY + 20)
-
-        ctx.fillText(
-            'o1 a: ' + Math.round(hg.a1 * 10000) / 10000 +
-            ', f: ' + Math.round(hg.f1 * 10000) / 10000 +
-            ', p: ' + Math.round(hg.p1 * 10000) / 10000 +
-            ', d: ' + Math.round(hg.d1 * 10000) / 10000
-            , 10, Y - uiY - 50)
-        ctx.fillText(
-            'rot a: ' + Math.round(hg.a3 * 10000) / 10000 +
-            ', f: ' + Math.round(hg.f3 * 10000) / 10000 +
-            ', p: ' + Math.round(hg.p3 * 10000) / 10000 +
-            ', d: ' + Math.round(hg.d3 * 10000) / 10000
-            , 10, Y - uiY - 20)
-        // ctx.fillText('scl='+Math.round(scl * 10000) / 10000, 20, uiY + 140)
-        // ctx.fillText('v21', 10, Y - 15)
-    }
-}
 function drawArrow(ctx, fromx, fromy, tox, toy, arrowWidth, color) {
     //variables to be used when creating the arrow
     var headlen = 10 * pixRat;
@@ -1179,6 +1168,61 @@ function drawArrow(ctx, fromx, fromy, tox, toy, arrowWidth, color) {
     ctx.fill();
     // ctx.restore();
 }
+function anim() {
+    if (hg.auto) { requestAnimationFrame(anim); }
+    if (hg.auto) { // & !showColInfo & !showInfo & !showRadInfo) {
+        hg.update();
+    }
+
+    // clear screen
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+    //scaled stuff
+    ctx.setTransform(scl, 0, 0, scl, xOff, yOff)
+    hg.calc()
+    hg.draw()
+    // 
+
+    // fixed stuff
+    ctx.setTransform(1, 0, 0, 1, 0, 0)
+    panelArray.forEach(panel => panel.draw())
+
+    // if (showInfo) {
+    //     pair.drawInfo();
+    // }
+    // if (showRadInfo) {
+    //     pair.drawRadInfo();
+    // }
+    // if (showColInfo) {
+    //     pair.drawColInfo();
+    // }
+
+    if (topPanel.active) {
+        ctx.textAlign = "left"
+        // ctx.fillText('auto: ' + hg.auto, 20, uiY + 20)
+        // ctx.fillText('auto Phase 1: ' + hg.autoPhase, 20, uiY + 50)
+        // ctx.fillText('auto Phase 2: ' + hg.autoPhaseRot, 20, uiY + 80)
+
+        ctx.fillText(
+            // 'o1 a: ' + Math.round(hg.a1 * 10000) / 10000 +
+            'f1: ' + Math.round(hg.f1 * 10000) / 10000 +
+            ', f2: ' + Math.round(hg.f2 * 10000) / 10000 +
+            ', detune1: ' + Math.round(hg.detune1 * 10000) / 10000
+            // ', p: ' + Math.round(hg.p1 * 10000) / 10000 +
+            // ', d: ' + Math.round(hg.d1 * 10000) / 10000
+            , 10, Y - uiY - 50)
+        ctx.fillText(
+            // 'rot a: ' + Math.round(hg.a3 * 10000) / 10000 +
+            'f: ' + Math.round(hg.f3 * 10000) / 10000
+            // ', p: ' + Math.round(hg.p3 * 10000) / 10000 +
+            // ', d: ' + Math.round(hg.d3 * 10000) / 10000
+            , 10, Y - uiY - 20)
+
+        // ctx.fillText('scl='+Math.round(scl * 10000) / 10000, 20, uiY + 140)
+        // ctx.fillText('v21', 10, Y - 15)
+    }
+}
+
 class Harmonograph {
     constructor() {
         this.hue = hueInit;
@@ -1188,29 +1232,30 @@ class Harmonograph {
         this.color = 0;
         this.setColor();
 
-        this.f1 = 1.5;
-        this.f2 = 1;
+        this.f1 = 1;
+        this.f2 = 2;
         this.f3 = 1;
+        this.detune1=0;
 
         this.p1 = .25;
         this.p2 = 0;
         this.p3 = .5;
 
-        this.a1 = 0.45 * Math.min(X, Y);
-        this.a2 = 0.45 * Math.min(X, Y);
-        this.a3 = 0.2 * Math.min(X, Y);
+        this.a1 = 0.45 * Math.min(X, Y - 2 * uiY);
+        this.a2 = 0.45 * Math.min(X, Y - 2 * uiY);
+        this.a3 = 0.0 * Math.min(X, Y);
 
-        this.d1 = .002;
-        this.d2 = .002;
+        this.d1 = .006;
+        this.d2 = .006;
         this.d3 = 0.00;
 
         this.t0 = 0;
-        this.t1 = 300;
+        this.t1 = 200;
         this.dt = .05;
 
         this.auto = true;
-        this.autoPhase = true;
-        this.autoPhaseRot = true;
+        this.autoPhase = false;
+        this.autoPhaseRot = false;
 
         this.points = [];
         this.calc();
@@ -1219,17 +1264,19 @@ class Harmonograph {
     toggleAutoPhase() {
         this.autoPhase = !this.autoPhase;
         this.checkAuto();
-        anim()
     }
     toggleAutoPhaseRot() {
         this.autoPhaseRot = !this.autoPhaseRot;
         this.checkAuto();
-        anim()
     }
-
-    checkAuto(){
-        if(this.autoPhase || this.autoPhaseRot){this.auto=true}
-        else{this.auto=false}
+    checkAuto() {
+        if (!(this.autoPhase || this.autoPhaseRot)) {
+            this.auto = false;
+        }
+        else if (!this.auto) {
+            this.auto = true;
+            anim();
+        }
     }
 
     update() {
@@ -1237,7 +1284,7 @@ class Harmonograph {
             this.p1 = this.p1 + 0.002
         }
         if (this.autoPhaseRot) {
-            this.p3 = this.p3 + 0.0002
+            this.p3 = this.p3 + 0.001
         }
     }
 
@@ -1255,7 +1302,7 @@ class Harmonograph {
         for (let t = this.t0; t < this.t1; t += this.dt) {
             this.points.push(new Point(
                 this.eq(
-                    this.a1, this.f1, this.p1, this.d1,
+                    this.a1, this.f1+this.detune1, this.p1, this.d1,
                     this.a3, this.f3, this.p3, this.d3,
                     t),
                 this.eq(
