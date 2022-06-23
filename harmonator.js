@@ -318,15 +318,17 @@ class PButton {
                 baseLW, uiTextColor)
         }
 
-
-
-
         ctx.fillStyle = uiTextColor;
         ctx.textAlign = "center";
         ctx.font = txtSize / 4 + 'px sans-serif';
         ctx.textBaseline = "middle";
         ctx.lineWidth = baseLW;
         ctx.fillText(this.txt, this.x + this.w / 2, this.y + this.h / 2, this.w * 0.9);
+        if (this.yDrag) {
+            // console.log(this.getYdragVar)
+            ctx.fillText(Math.round(this.getYdragVar() * 100) / 100, this.x + this.w / 2, this.y + this.h - txtSize / 4, this.w * 0.9);
+        }
+
     }
     contains(x, y) {
         return (x > this.x & x < (this.x + this.w) & y > this.y & y < (this.y + this.h));
@@ -647,7 +649,7 @@ function drawSquareFullImage(n = 1080) {
     // pair.penUp();
     let baseLWtemp = baseLW;
     baseLW = galleryLW * baseLW;
-    let tracesBounds = hg.getTracesBounds();
+    let tracesBounds = hg.getBounds();
     let size = (shareBorderfrac + 1) * Math.max(
         tracesBounds.xmax - tracesBounds.xmin,
         tracesBounds.ymax - tracesBounds.ymin
@@ -787,16 +789,22 @@ function createTopPanel() {
     //     new PButton(panel, 0.25, .333, 0.25, 0.666, "Clear",
     //         function () { pair.clear(); })
     // );
-    panel.buttonArray.push(
-        new PButton(panel, 0.25, .0, 0.25, 0.5, "Phase1",
-            function () { hg.toggleAutoPhase(); })
-    );
-    panel.buttonArray.push(
-        new PButton(panel, 0.25, .5, 0.25, 0.5, "Phase2",
-            function () { hg.toggleAutoPhaseRot(); })
-    );
+    a1=new PButton(panel, 0.25, .0, 0.25, 0.5, "Auto p1",
+        function () { hg.toggleAutoPhase(); },[],[],[],null,
+        function() {return hg.autoPhase})
+    a1.toggle=true;
+    panel.buttonArray.push(a1);
 
+    a2 = new PButton(panel, 0.25, .50, 0.25, 0.5, "Auto p2",
+        function () { hg.toggleAutoPhaseRot(); }, [], [], [], null,
+        function () { return hg.autoPhaseRot })
+    a2.toggle = true;
+    panel.buttonArray.push(a2);
 
+    panel.buttonArray.push(
+        new PButton(panel, 0.5, .0, 0.25, 0.5, "Zero fine",
+            function () { hg.detune1=0; })
+    );
 
 
 
@@ -878,7 +886,7 @@ function createBottomPanel() {
     dragButton2.UDarrows = true;
     panel.buttonArray.push(dragButton2);
 
-    let dragButton1a = new PButton(panel, 0.2, 0, 0.1, 1, "detune",
+    let dragButton1a = new PButton(panel, 0.2, 0, 0.1, 1, "fine",
         function (dy, yDragVar0) {
             showWheelsOverride = true;
             // pair.penUp();
@@ -984,7 +992,7 @@ function createBottomPanel() {
 
     let dragButton9 = new PButton(panel, 0.8, 0.0, 0.1, 1, "f",
         function (dy, yDragVar0) {
-            hg.f3 = Math.min(100, Math.max((1 - 0.01 / pixRat * dy) * yDragVar0, 1))
+            hg.f3 = Math.round(Math.min(10, Math.max((-0.05 / pixRat * dy) + yDragVar0, 0)))
 
         }, [], [],
         function () {
@@ -1001,7 +1009,7 @@ function createBottomPanel() {
 
     let dragButton10 = new PButton(panel, 0.9, 0.0, 0.1, 1, "p3",
         function (dy, yDragVar0) {
-            hg.p3 = Math.min(-10, Math.max((- 0.0005 / pixRat * dy) + yDragVar0, 10))
+            hg.p3 = Math.min(10, Math.max((- 0.0005 / pixRat * dy) + yDragVar0, -10))
 
         }, [], [],
         function () {
@@ -1180,7 +1188,7 @@ function anim() {
     //scaled stuff
     ctx.setTransform(scl, 0, 0, scl, xOff, yOff)
     hg.calc()
-    hg.draw()
+    hg.draw(ctx)
     // 
 
     // fixed stuff
@@ -1197,30 +1205,30 @@ function anim() {
     //     pair.drawColInfo();
     // }
 
-    if (topPanel.active) {
-        ctx.textAlign = "left"
-        // ctx.fillText('auto: ' + hg.auto, 20, uiY + 20)
-        // ctx.fillText('auto Phase 1: ' + hg.autoPhase, 20, uiY + 50)
-        // ctx.fillText('auto Phase 2: ' + hg.autoPhaseRot, 20, uiY + 80)
+    // if (topPanel.active) {
+    //     ctx.textAlign = "left"
+    // ctx.fillText('auto: ' + hg.auto, 20, uiY + 20)
+    // ctx.fillText('auto Phase 1: ' + hg.autoPhase, 20, uiY + 50)
+    // ctx.fillText('auto Phase 2: ' + hg.autoPhaseRot, 20, uiY + 80)
 
-        ctx.fillText(
-            // 'o1 a: ' + Math.round(hg.a1 * 10000) / 10000 +
-            'f1: ' + Math.round(hg.f1 * 10000) / 10000 +
-            ', f2: ' + Math.round(hg.f2 * 10000) / 10000 +
-            ', detune1: ' + Math.round(hg.detune1 * 10000) / 10000
-            // ', p: ' + Math.round(hg.p1 * 10000) / 10000 +
-            // ', d: ' + Math.round(hg.d1 * 10000) / 10000
-            , 10, Y - uiY - 50)
-        ctx.fillText(
-            // 'rot a: ' + Math.round(hg.a3 * 10000) / 10000 +
-            'f: ' + Math.round(hg.f3 * 10000) / 10000
-            // ', p: ' + Math.round(hg.p3 * 10000) / 10000 +
-            // ', d: ' + Math.round(hg.d3 * 10000) / 10000
-            , 10, Y - uiY - 20)
+    // ctx.fillText(
+    //     // 'o1 a: ' + Math.round(hg.a1 * 10000) / 10000 +
+    //     'f1: ' + Math.round(hg.f1 * 10000) / 10000 +
+    //     ', f2: ' + Math.round(hg.f2 * 10000) / 10000 +
+    //     ', detune1: ' + Math.round(hg.detune1 * 10000) / 10000
+    //     // ', p: ' + Math.round(hg.p1 * 10000) / 10000 +
+    //     // ', d: ' + Math.round(hg.d1 * 10000) / 10000
+    //     , 10, Y - uiY - 50)
+    // ctx.fillText(
+    //     // 'rot a: ' + Math.round(hg.a3 * 10000) / 10000 +
+    //     'f: ' + Math.round(hg.f3 * 10000) / 10000
+    //     // ', p: ' + Math.round(hg.p3 * 10000) / 10000 +
+    //     // ', d: ' + Math.round(hg.d3 * 10000) / 10000
+    //     , 10, Y - uiY - 20)
 
-        // ctx.fillText('scl='+Math.round(scl * 10000) / 10000, 20, uiY + 140)
-        // ctx.fillText('v21', 10, Y - 15)
-    }
+    // ctx.fillText('scl='+Math.round(scl * 10000) / 10000, 20, uiY + 140)
+    // ctx.fillText('v21', 10, Y - 15)
+    // }
 }
 
 class Harmonograph {
@@ -1235,7 +1243,7 @@ class Harmonograph {
         this.f1 = 1;
         this.f2 = 2;
         this.f3 = 1;
-        this.detune1=0;
+        this.detune1 = 0;
 
         this.p1 = .25;
         this.p2 = 0;
@@ -1253,13 +1261,32 @@ class Harmonograph {
         this.t1 = 200;
         this.dt = .05;
 
-        this.auto = true;
+        this.auto = false;
         this.autoPhase = false;
         this.autoPhaseRot = false;
 
         this.points = [];
         this.calc();
 
+    }
+
+    getBounds() {
+        let xmin = 0;
+        let xmax = 0;
+        let ymin = 0;
+        let ymax = 0;
+        this.points.forEach(point => {
+            xmin = Math.min(xmin, point.x);
+            xmax = Math.max(xmax, point.x);
+            ymin = Math.min(ymin, point.y);
+            ymax = Math.max(ymax, point.y);
+        })
+        return ({
+            xmin: xmin,
+            xmax: xmax,
+            ymin: ymin,
+            ymax: ymax,
+        })
     }
     toggleAutoPhase() {
         this.autoPhase = !this.autoPhase;
@@ -1302,7 +1329,7 @@ class Harmonograph {
         for (let t = this.t0; t < this.t1; t += this.dt) {
             this.points.push(new Point(
                 this.eq(
-                    this.a1, this.f1+this.detune1, this.p1, this.d1,
+                    this.a1, this.f1 + this.detune1, this.p1, this.d1,
                     this.a3, this.f3, this.p3, this.d3,
                     t),
                 this.eq(
@@ -1311,7 +1338,7 @@ class Harmonograph {
                     t)))
         }
     }
-    draw() {
+    draw(ctx) {
 
         if (this.points.length > 1) {
             // console.log('Draw')
