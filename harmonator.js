@@ -789,10 +789,10 @@ function createTopPanel() {
     //     new PButton(panel, 0.25, .333, 0.25, 0.666, "Clear",
     //         function () { pair.clear(); })
     // );
-    a1=new PButton(panel, 0.25, .0, 0.25, 0.5, "Auto p1",
-        function () { hg.toggleAutoPhase(); },[],[],[],null,
-        function() {return hg.autoPhase})
-    a1.toggle=true;
+    a1 = new PButton(panel, 0.25, .0, 0.25, 0.5, "Auto p1",
+        function () { hg.toggleAutoPhase(); }, [], [], [], null,
+        function () { return hg.autoPhase })
+    a1.toggle = true;
     panel.buttonArray.push(a1);
 
     a2 = new PButton(panel, 0.25, .50, 0.25, 0.5, "Auto p2",
@@ -803,7 +803,7 @@ function createTopPanel() {
 
     panel.buttonArray.push(
         new PButton(panel, 0.5, .0, 0.25, 0.5, "Zero fine",
-            function () { hg.detune1=0; })
+            function () { hg.detune1 = 0; })
     );
 
 
@@ -976,7 +976,7 @@ function createBottomPanel() {
 
     let dragButton8 = new PButton(panel, 0.7, 0.0, 0.1, 1, "a",
         function (dy, yDragVar0) {
-            hg.a3 = Math.min(X, Math.max((-1.0 / pixRat * dy) + yDragVar0, 0))
+            hg.a3 = Math.min(X, Math.max((-1.0 / pixRat * dy) + yDragVar0, -X))
 
         }, [], [],
         function () {
@@ -992,7 +992,7 @@ function createBottomPanel() {
 
     let dragButton9 = new PButton(panel, 0.8, 0.0, 0.1, 1, "f",
         function (dy, yDragVar0) {
-            hg.f3 = Math.round(Math.min(10, Math.max((-0.05 / pixRat * dy) + yDragVar0, 0)))
+            hg.f3 = Math.round(Math.min(20, Math.max((-0.05 / pixRat * dy) + yDragVar0, -20)))
 
         }, [], [],
         function () {
@@ -1241,33 +1241,34 @@ class Harmonograph {
         this.setColor();
 
         this.f1 = 1;
-        this.f2 = 2;
+        this.f2 = 1;
         this.f3 = 1;
-        this.detune1 = 0;
+        this.detune1 = 0.01;
 
-        this.p1 = .25;
-        this.p2 = 0;
+        this.p1 = .0;
+        this.p2 = .15;
         this.p3 = .5;
 
-        this.a1 = 0.45 * Math.min(X, Y - 2 * uiY);
-        this.a2 = 0.45 * Math.min(X, Y - 2 * uiY);
-        this.a3 = 0.0 * Math.min(X, Y);
+        this.a1 = 0.4 * Math.min(X, Y - 2 * uiY);
+        this.a2 = 0.4 * Math.min(X, Y - 2 * uiY);
+        this.a3 = 0.2 * Math.min(X, Y);
 
-        this.d1 = .006;
-        this.d2 = .006;
-        this.d3 = 0.00;
+        this.d1 = .001;
+        this.d2 = .001;
+        this.d3 = 0.02;
 
         this.t0 = 0;
         this.t1 = 200;
         this.dt = .05;
 
         this.auto = false;
-        this.autoPhase = false;
-        this.autoPhaseRot = false;
+        this.autoPhase = true;
+        this.autoPhaseRot = true;
+
+        this.softStart = 10;
 
         this.points = [];
         this.calc();
-
     }
 
     getBounds() {
@@ -1326,6 +1327,7 @@ class Harmonograph {
         this.points = [];
         // let n = (this.t1 - this.t0) / this.dt;
         // console.log('Calc n:',n)
+        
         for (let t = this.t0; t < this.t1; t += this.dt) {
             this.points.push(new Point(
                 this.eq(
@@ -1334,22 +1336,63 @@ class Harmonograph {
                     t),
                 this.eq(
                     this.a2, this.f2, this.p2, this.d2,
-                    this.a3, this.f3 + .25, this.p3, this.d3,
+                    this.a3, this.f3, this.p3 + .25, this.d3,
                     t)))
         }
     }
     draw(ctx) {
 
         if (this.points.length > 1) {
-            // console.log('Draw')
-            ctx.beginPath();
-            ctx.strokeStyle = this.color;
             ctx.lineWidth = baseLW * 1;
+            ctx.beginPath()
             ctx.moveTo(this.points[0].x, this.points[0].y);
-            this.points.forEach(point => {
-                ctx.lineTo(point.x, point.y);
-            })
-            ctx.stroke();
+            let n = 0;
+            let alpha=0;
+            if (this.softStart) {
+                // console.log("soft")
+
+                this.points.slice(0, this.softStart).forEach(point => {
+                    n++;
+                    alpha= (n/this.softStart)**2;
+                    ctx.strokeStyle = "hsla(" + this.hue + "," + this.saturation + "%," + this.lightness + "%," + alpha + ")"
+                    // console.log(n)
+                    ctx.lineTo(point.x, point.y);
+                    ctx.stroke();
+                    ctx.beginPath();
+                    ctx.moveTo(point.x, point.y);
+                });
+
+                ctx.strokeStyle = this.color;
+                this.points.slice(this.softStart - 1,-this.softStart).forEach(point => {
+                    ctx.lineTo(point.x, point.y);
+                })
+                ctx.stroke();
+
+                n=this.softStart;
+                ctx.beginPath();
+                ctx.moveTo(this.points.slice(-this.softStart-1)[0].x, this.points.slice(-this.softStart-1)[0].y);
+                this.points.slice(-this.softStart).forEach(point => {
+                    n--;
+                    // console.log(n)
+                    alpha = (n / this.softStart) ** 2;
+                    ctx.strokeStyle = "hsla(" + this.hue + "," + this.saturation + "%," + this.lightness + "%," + alpha + ")"
+                    ctx.lineTo(point.x, point.y);
+
+                    ctx.stroke();
+                    ctx.beginPath();
+                    ctx.moveTo(point.x, point.y);
+                })
+
+            }
+            else {
+                // console.log("hard")
+                ctx.strokeStyle = this.color;
+                this.points.forEach(point => {
+                    ctx.lineTo(point.x, point.y);
+                })
+                ctx.stroke();
+            }
+
         }
     }
 
