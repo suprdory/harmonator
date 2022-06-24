@@ -2,257 +2,30 @@ Array.prototype.random = function () {
     return this[Math.floor((Math.random() * this.length))];
 }
 
+class Oscillator {
+    constructor(a, f, p, d) {
+        this.a = a;
+        this.f = f;
+        this.df = 0;
+        this.p = p;
+        this.d = d;
+    }
+    val(t) {
+        return baseAmp * this.a * Math.sin((this.f + this.df) * t + this.p * 6.28318530718) * Math.exp(-this.d * t);
+    }
+    phaseBound() {
+        if (this.p > 1) {
+            this.p = this.p - 1;
+        }
+        else if (this.p < 0) {
+            this.p = this.p + 1
+        }
+    }
+}
 class Point {
     constructor(x, y) {
         this.x = x;
         this.y = y;
-    }
-}
-class Pair {
-    constructor(fixed, moving) {
-        this.fixed = fixed;
-        this.moving = moving;
-        this.out = false;
-        this.th = 0;
-        this.auto = 0;
-        this.hue = hueInit;
-        this.saturation = 100;
-        this.lightness = 65;
-        this.locked = true;
-
-        this.setColor();
-        this.trace = new Trace(this);
-        this.traces = [];
-        this.tracing = true;
-        this.move(this.th);
-    }
-    toggleLock() {
-        this.locked = !this.locked
-    }
-
-    translate(x, y) {
-        if (!this.locked) {
-            // let auto=this.auto;
-            this.auto = false;
-            this.penUp()
-            this.fixed.x = x;
-            this.fixed.y = y;
-            this.move(this.th)
-            this.penDown()
-            // this.auto=auto
-        }
-    }
-    setColor() {
-        this.color = "hsl(" + this.hue + "," + this.saturation + "%," + this.lightness + "%)"
-    }
-    drawRadInfo() {
-        ctx.strokeStyle = this.fixed.color;
-        ctx.fillStyle = this.fixed.color;
-        ctx.textAlign = "center";
-        ctx.font = txtSize + 'px sans-serif';
-        ctx.textBaseline = "middle";
-        ctx.fillText(Math.round(this.moving.rat * this.moving.teeth), X / 2, Y / 2);
-        ctx.font = txtSize / 2 + 'px sans-serif';
-        ctx.fillText('Draw Radius', X / 2, Y / 2 - txtSize);
-
-    }
-    drawColInfo() {
-        ctx.strokeStyle = this.color;
-        ctx.fillStyle = this.color;
-        ctx.textAlign = "center";
-        ctx.font = txtSize + 'px sans-serif';
-        ctx.textBaseline = "middle";
-        ctx.fillText(Math.round(this.hue), X / 2 - txtSize, Y / 2);
-        ctx.fillText(Math.round(this.lightness - 50), X / 2 + txtSize, Y / 2);
-        ctx.font = txtSize / 2 + 'px sans-serif';
-        ctx.fillText('Hue', X / 2 - txtSize, Y / 2 - txtSize);
-        ctx.fillText('Lightness', X / 2 + txtSize, Y / 2 - txtSize);
-    }
-    drawInfo() {
-        ctx.strokeStyle = this.fixed.color;
-        ctx.fillStyle = this.fixed.color;
-        ctx.textAlign = "center";
-        ctx.font = txtSize + 'px sans-serif';
-        ctx.textBaseline = "middle";
-        ctx.fillText(this.fixed.teeth, X / 2 - txtSize * 1.5, Y / 2 - txtSize * 0.45);
-        ctx.fillText(this.moving.teeth, X / 2 - txtSize * 1.5, Y / 2 + txtSize * 0.60);
-        ctx.fillText(calcLCM(this.fixed.teeth, this.moving.teeth) / this.moving.teeth, X / 2 + 1.5 * txtSize, Y / 2);
-
-        ctx.beginPath();
-        ctx.moveTo(X / 2 - txtSize * 2.5, Y / 2 - txtSize * 0.00);
-        ctx.lineTo(X / 2 - txtSize * 0.5, Y / 2 - txtSize * 0.00);
-        ctx.lineWidth = 3 * pixRat;
-        ctx.stroke();
-
-        ctx.font = txtSize / 2 + 'px sans-serif';
-        ctx.fillText('Fixed wheel', X / 2 - txtSize * 1.5, Y / 2 - txtSize * 1.5);
-        ctx.fillText('Moving wheel', X / 2 - txtSize * 1.5, Y / 2 + txtSize * 1.5);
-        ctx.fillText('Symmetry', X / 2 + txtSize * 1.5, Y / 2 + txtSize * -1.0);
-    }
-    penUp() {
-        this.tracing = false;
-        if (this.trace.points.length > 1) {
-            this.traces.push(this.trace);
-        }
-        this.trace = new Trace(this);
-    }
-    penUpCont() { //for continuity between traces, start next trace with last point of previous
-        this.tracing = false;
-        let cont = this.trace.points.length > 1;
-        if (cont) {
-            this.traces.push(this.trace);
-        }
-        this.trace = new Trace(this);
-        if (cont & (this.traces.length > 0)) {
-            this.trace.points.push(this.traces.slice(-1)[0].points.slice(-1)[0])
-        }
-    }
-    penDown() {
-        this.tracing = true;
-    }
-    update() {
-        this.roll(this.th + .05 / Math.max(Math.abs(1 - this.fixed.circ / this.moving.circ), .15) * this.auto);
-    }
-    nudge(n) {
-        this.penUp()
-        let thInc = -n * PI2 / this.fixed.teeth;
-        if (!this.out) {
-            this.moving.th0 += thInc * this.fixed.rad / this.moving.rad;
-        }
-        if (this.out) {
-            this.moving.th0 -= thInc * this.fixed.rad / this.moving.rad;
-        }
-        this.move(this.th + thInc);
-        this.penDown()
-    }
-    reset() {
-        this.penUp()
-        this.moving.th0 = 0;
-        this.move(0);
-        this.penDown()
-    }
-    move(th) {
-        let f = this.fixed;
-        let m = this.moving;
-        if (this.out) {
-            m.x = f.x + (f.rad + m.rad) * Math.cos(th);
-            m.y = f.y + (f.rad + m.rad) * Math.sin(th);
-            m.th = m.th0 + th * (f.rad / m.rad + 1)
-        }
-        if (!this.out) {
-            m.x = f.x + (f.rad - m.rad) * Math.cos(th);
-            m.y = f.y + (f.rad - m.rad) * Math.sin(th);
-            m.th = m.th0 - th * (f.rad / m.rad - 1)
-        }
-
-        this.th = th;
-        if (this.tracing) {
-            this.trace.points.push(this.tracePoint());
-        }
-    }
-    inOut() {
-        this.penUp();
-        this.out = !this.out;
-        this.configRings();
-        // this.fixed.out=-this.fixed.out;
-        this.moving.th0 += PI2 / 2;
-        this.move(this.th);
-        this.penDown();
-    }
-    configRings() {
-        if (this.out) {
-            this.fixed.ring = -1;
-            this.moving.ring = 0;
-        }
-        else if (this.moving.teeth > this.fixed.teeth) {
-            this.moving.ring = 1;
-            this.fixed.ring = 0;
-        }
-        else {
-            this.moving.ring = 0;
-            this.fixed.ring = 1;
-        }
-    }
-
-    roll(th) {
-        this.move(this.th)
-        if (Math.abs(th - this.th) < dth) {
-            // normal move, increment is safely small
-            this.move(th)
-        }
-        else {
-            // move in units of dth
-            let n = (th - this.th) / dth;
-            // console.log(n);
-
-            if (n > 0) {
-                for (let i = 1; i < (n); i++) {
-                    this.move(this.th + dth);
-                }
-                this.move(this.th + (n - Math.floor(n)) * dth);
-            }
-            else {
-                for (let i = 1; i < -(n); i++) {
-                    this.move(this.th - dth);
-                }
-                this.move(this.th - (Math.ceil(n) - n) * dth);
-            }
-        }
-    }
-    fullTrace() {
-        this.penUp();
-        this.penDown();
-        let startTh = this.th;
-        this.roll(this.th + PI2 * calcLCM(this.fixed.teeth, this.moving.teeth) / this.fixed.teeth);
-        this.move(startTh + PI2 * calcLCM(this.fixed.teeth, this.moving.teeth) / this.fixed.teeth)
-        this.penUp();
-        this.penDown();
-    }
-    tracePoint() {
-        let m = this.moving;
-        let x = m.x + Math.cos(m.th) * (m.rad * m.rat)
-        let y = m.y + Math.sin(m.th) * (m.rad * m.rat)
-        return (new Point(x, y));
-    }
-    drawTraces(ctx) {
-        // console.log(xoff,yoff)
-        this.traces.forEach(trace => {
-            trace.draw(ctx);
-        })
-        this.trace.draw(ctx);
-    }
-    clear() {
-        if (this.trace.points.length > 0) {
-            this.trace = new Trace(this);
-        }
-        else if (this.traces.length > 0) {
-            this.traces.pop();
-        }
-    }
-    clearAll() {
-        while (this.traces.length > 0 || this.trace.points.length > 0) {
-            this.clear();
-        }
-    }
-    getTracesBounds() {
-        let xmin = 0;
-        let xmax = 0;
-        let ymin = 0;
-        let ymax = 0;
-        this.traces.forEach(trace => {
-            // console.log(trace.bounds())
-            xmin = Math.min(trace.bounds().xmin, xmin);
-            xmax = Math.max(trace.bounds().xmax, xmax);
-            ymin = Math.min(trace.bounds().ymin, ymin);
-            ymax = Math.max(trace.bounds().ymax, ymax);
-        })
-        return ({
-            xmin: xmin,
-            xmax: xmax,
-            ymin: ymin,
-            ymax: ymax,
-        })
-
     }
 }
 class PButton {
@@ -326,7 +99,7 @@ class PButton {
         ctx.fillText(this.txt, this.x + this.w / 2, this.y + this.h / 2, this.w * 0.9);
         if (this.yDrag) {
             // console.log(this.getYdragVar)
-            ctx.fillText(Math.round(this.getYdragVar() * 100) / 100, this.x + this.w / 2, this.y + this.h - txtSize / 4, this.w * 0.9);
+            ctx.fillText(this.getYdragVar().toFixed(2), this.x + this.w / 2, this.y + this.h - txtSize / 4, this.w * 0.9);
         }
 
     }
@@ -375,37 +148,64 @@ class PButton {
         }
     }
 }
+class OscPButton extends PButton {
+}
 class Panel {
-    constructor(x, y, w, h) {
+    constructor(x, py, w, ph, txt) {
         this.active = true;
         this.x = x;
-        this.y = y;
+        this.y = py;
         this.w = w;
-        this.h = h;
+        this.h = ph;
+        this.py = py;
+        this.ph = ph;
         this.anyClickActivates = false;
         this.overlay = false;
         this.buttonArray = [];
         this.wait = false;
+        this.titH = txtSize / 2;
+        this.txt = txt;
+        if (txt) {
+            this.y = py + this.titH;
+            this.h = ph - this.titH;
+        }
+
     }
     draw() {
         if (this.active) {
             if (this.overlay) {
-                ctx.beginPath();
-                ctx.lineWidth = baseLW * 1;
+                // darken background
                 ctx.fillStyle = bgFillStyleAlpha;
                 ctx.fillRect(0, 0, X, Y);
                 ctx.fillStyle = bgFillStyle;
-                ctx.fillRect(this.x, this.y, this.w, this.h)
+                ctx.fillRect(this.x, this.py, this.w, this.ph)
             }
+            // transparent panel background
             ctx.fillStyle = bgFillStyleAlpha;
-            ctx.fillRect(this.x, this.y, this.w, this.h);
+            ctx.fillRect(this.x, this.py, this.w, this.ph);
 
+            // draw title
+            if (this.txt) {
+                ctx.beginPath();
+                ctx.strokeStyle = hg.color;
+                ctx.lineWidth = baseLW * 3.0;
+                ctx.rect(this.x, this.py, this.w, this.titH)
+                ctx.stroke();
+                ctx.fillStyle = uiTextColor;
+                ctx.textAlign = "center";
+                ctx.textBaseline = "middle";
+                ctx.font = txtSize / 4 + 'px sans-serif';
+                // console.log(this.txt, this.x + this.w / 2, this.py + this.titH / 2)
+                ctx.fillText(this.txt, this.x + this.w / 2, this.py + this.titH / 2);
+            }
+            //main border
             ctx.beginPath();
             ctx.strokeStyle = hg.color;
-            ctx.lineWidth = baseLW * 2;
-            ctx.rect(this.x, this.y, this.w, this.h)
+            ctx.lineWidth = baseLW * 3;
+            ctx.rect(this.x, this.py, this.w, this.ph)
             ctx.stroke();
             ctx.lineWidth = baseLW * 1;
+
             if (!this.wait) {
                 this.buttonArray.forEach(button => button.draw());
             }
@@ -547,9 +347,9 @@ function pointerDownHandler(xc, yc, n = 1) {
 
 
     if (
-        !isLandscape & bottomPanel.active & (y < (Y - uiY) & y > uiY) ||
-        isLandscape & bottomPanel.active & (x > uiX) ||
-        !bottomPanel.active
+        !isLandscape & topPanel.active & (y < (Y - uiY) & y > uiY) ||
+        isLandscape & topPanel.active & (x > uiX) ||
+        !topPanel.active
     ) {
         mselect = "pan";
         y0 = y;
@@ -765,7 +565,7 @@ function createSharePanel() {
 function createTopPanel() {
 
     let uiBorder = X / 100;
-    let panel = new Panel(0 + uiBorder, 0 + uiBorder, uiX - 2 * uiBorder, uiY);
+    let panel = new Panel(0 + uiBorder, 0 + uiBorder, .5*uiX - 2 * uiBorder, uiY);
     panel.anyClickActivates = true;
 
     panel.buttonArray.push(
@@ -845,7 +645,7 @@ function createTopPanel() {
 function createBottomPanel() {
 
     let uiBorder = X / 100;
-    let panel = new Panel(0 + uiBorder, Y - uiY - 2 * uiBorder + uiBorder, uiX - 2 * uiBorder, uiY);
+    let panel = new Panel(0 + uiBorder, Y - uiY - 2 * uiBorder + uiBorder, uiX - 2 * uiBorder, uiY, 'slider');
     panel.anyClickActivates = true;
 
     let dragButton1 = new PButton(panel, 0.0, 0, 0.1, 1, "f1",
@@ -1176,11 +976,26 @@ function drawArrow(ctx, fromx, fromy, tox, toy, arrowWidth, color) {
     ctx.fill();
     // ctx.restore();
 }
+function linkOscCirc(oscA, oscB) {
+    oscB.a = oscA.a;
+    oscB.f = oscA.f;
+    oscB.p = oscA.p + 0.25;
+    oscB.d = oscA.d;
+}
+function linkOscAmp(oscA, oscB) {
+    oscB.a = oscA.a;
+}
+function linkOscDec(oscA, oscB) {
+    oscB.d = oscA.d;
+}
 function anim() {
     if (hg.auto) { requestAnimationFrame(anim); }
     if (hg.auto) { // & !showColInfo & !showInfo & !showRadInfo) {
         hg.update();
     }
+    linkOscCirc(oscXrot, oscYrot);
+    linkOscAmp(oscX, oscY);
+    linkOscDec(oscX, oscY);
 
     // clear screen
     ctx.clearRect(0, 0, canvas.width, canvas.height);
@@ -1232,7 +1047,7 @@ function anim() {
 }
 
 class Harmonograph {
-    constructor() {
+    constructor(oscX, oscY, oscXrot, oscYrot) {
         this.hue = hueInit;
         this.saturation = 100;
         this.lightness = 65;
@@ -1240,28 +1055,16 @@ class Harmonograph {
         this.color = 0;
         this.setColor();
 
-        this.f1 = 1;
-        this.f2 = 1;
-        this.f3 = 1;
-        this.detune1 = 0.01;
+        this.oscX = oscX;
+        this.oscY = oscY;
+        this.oscXrot = oscXrot;
+        this.oscYrot = oscYrot;
 
-        this.p1 = .0;
-        this.p2 = .15;
-        this.p3 = .5;
-
-        this.a1 = 0.4 * Math.min(X, Y - 2 * uiY);
-        this.a2 = 0.4 * Math.min(X, Y - 2 * uiY);
-        this.a3 = 0.2 * Math.min(X, Y);
-
-        this.d1 = .001;
-        this.d2 = .001;
-        this.d3 = 0.02;
-
-        this.t0 = 0;
-        this.t1 = 200;
+        this.t0 = -.0;
+        this.t1 = 100;
         this.dt = .05;
 
-        this.auto = false;
+        this.auto = true;
         this.autoPhase = true;
         this.autoPhaseRot = true;
 
@@ -1309,10 +1112,10 @@ class Harmonograph {
 
     update() {
         if (this.autoPhase) {
-            this.p1 = this.p1 + 0.002
+            this.oscX.p = this.oscX.p + 0.002
         }
         if (this.autoPhaseRot) {
-            this.p3 = this.p3 + 0.001
+            this.oscXrot.p = this.oscXrot.p + 0.002
         }
     }
 
@@ -1323,21 +1126,19 @@ class Harmonograph {
         return a * Math.sin(f * t + p * 6.28318530718) * Math.exp(-d * t) +
             a1 * Math.sin(f1 * t + p1 * 6.28318530718) * Math.exp(-d1 * t);
     }
+
     calc() {
+        this.oscX.phaseBound();
+        this.oscY.phaseBound();
+        this.oscXrot.phaseBound();
+        this.oscYrot.phaseBound();
         this.points = [];
         // let n = (this.t1 - this.t0) / this.dt;
         // console.log('Calc n:',n)
-        
         for (let t = this.t0; t < this.t1; t += this.dt) {
             this.points.push(new Point(
-                this.eq(
-                    this.a1, this.f1 + this.detune1, this.p1, this.d1,
-                    this.a3, this.f3, this.p3, this.d3,
-                    t),
-                this.eq(
-                    this.a2, this.f2, this.p2, this.d2,
-                    this.a3, this.f3, this.p3 + .25, this.d3,
-                    t)))
+                this.oscX.val(t) + this.oscXrot.val(t),
+                this.oscY.val(t) + this.oscYrot.val(t)))
         }
     }
     draw(ctx) {
@@ -1347,13 +1148,13 @@ class Harmonograph {
             ctx.beginPath()
             ctx.moveTo(this.points[0].x, this.points[0].y);
             let n = 0;
-            let alpha=0;
+            let alpha = 0;
             if (this.softStart) {
                 // console.log("soft")
 
                 this.points.slice(0, this.softStart).forEach(point => {
                     n++;
-                    alpha= (n/this.softStart)**2;
+                    alpha = (n / this.softStart) ** 2;
                     ctx.strokeStyle = "hsla(" + this.hue + "," + this.saturation + "%," + this.lightness + "%," + alpha + ")"
                     // console.log(n)
                     ctx.lineTo(point.x, point.y);
@@ -1363,14 +1164,14 @@ class Harmonograph {
                 });
 
                 ctx.strokeStyle = this.color;
-                this.points.slice(this.softStart - 1,-this.softStart).forEach(point => {
+                this.points.slice(this.softStart - 1, -this.softStart).forEach(point => {
                     ctx.lineTo(point.x, point.y);
                 })
                 ctx.stroke();
 
-                n=this.softStart;
+                n = this.softStart;
                 ctx.beginPath();
-                ctx.moveTo(this.points.slice(-this.softStart-1)[0].x, this.points.slice(-this.softStart-1)[0].y);
+                ctx.moveTo(this.points.slice(-this.softStart - 1)[0].x, this.points.slice(-this.softStart - 1)[0].y);
                 this.points.slice(-this.softStart).forEach(point => {
                     n--;
                     // console.log(n)
@@ -1431,7 +1232,7 @@ const shareBorderfrac = 0.15;
 const hueInit = Math.random() * 360
 const bgFillStyle = "hsl(" + hueInit + ",100%,5%)";
 const bgFillStyleAlpha = "hsla(" + hueInit + ",100%,5%,.80)";
-const transCol = "rgb(128,128,128,0.2)"
+const transCol = "rgb(128,128,128,0.4)"
 const uiTextColor = "white"
 canvas.style.backgroundColor = bgFillStyle
 
@@ -1463,13 +1264,173 @@ else {
     isLandscape = false;
 }
 
+let baseAmp = 0.2 * Math.min(X, Y)
+oscX = new Oscillator(1.0, 2, 0.0, 0.01);
+oscY = new Oscillator(1.0, 1, 0.25, 0.001);
+oscXrot = new Oscillator(0.3, 1, 0, 0);
+oscYrot = new Oscillator(0.0, 1, 0.25, 0);
 
-let hg = new Harmonograph()
 
+
+let hg = new Harmonograph(oscX, oscY, oscXrot, oscYrot)
+
+function createOscPanel(osc, oscTxt, xPos, yPos) {
+    w = X / 3;
+    h = uiY;
+    let panel = new Panel(xPos, yPos, w, h, oscTxt);
+    panel.anyClickActivates = true;
+
+    let button = new OscPButton(panel, 0, 0, 0.20, 1, 'amp',
+        function (dy, yDragVar0) {
+            osc.a = (Math.min(2, Math.max((-0.005 / pixRat * dy) + yDragVar0, 0)))
+        },
+        null, null,
+        function () {
+            return osc.a;
+        },
+        function (isDepressed) {
+            showRadInfo = isDepressed;
+        }, null)
+
+    button.yDrag = true;
+    button.UDarrows = true;
+    panel.buttonArray.push(button);
+
+    button = new OscPButton(panel, .2, 0, 0.20, 1, 'freq',
+        function (dy, yDragVar0) {
+            osc.f = Math.round(Math.min(10, Math.max((-0.05 / pixRat * dy) + yDragVar0, -10)))
+        },
+        null, null,
+        function () {
+            return osc.f;
+        },
+        function (isDepressed) {
+            showRadInfo = isDepressed;
+        }, null)
+
+    button.yDrag = true;
+    button.UDarrows = true;
+    panel.buttonArray.push(button);
+
+    button = new OscPButton(panel, .4, 0, 0.20, 1, 'detune',
+        function (dy, yDragVar0) {
+            osc.df = Math.min(1, Math.max((-0.00005 / pixRat * dy) + yDragVar0, -1))
+        },
+        null, null,
+        function () {
+            return osc.df;
+        },
+        function (isDepressed) {
+            showRadInfo = isDepressed;
+        }, null)
+
+    button.yDrag = true;
+    button.UDarrows = true;
+    panel.buttonArray.push(button);
+
+    button = new OscPButton(panel, .6, 0, 0.2, 1, 'phase',
+        function (dy, yDragVar0) {
+            osc.p = (Math.min(10, Math.max((-0.002 / pixRat * dy) + yDragVar0, -10)))
+        },
+        null, null,
+        function () {
+            return osc.p;
+        },
+        function (isDepressed) {
+            showRadInfo = isDepressed;
+        }, null)
+
+    button.yDrag = true;
+    button.UDarrows = true;
+    panel.buttonArray.push(button);
+
+    button = new OscPButton(panel, .8, 0, 0.2, 1, 'decay',
+        function (dy, yDragVar0) {
+            osc.d = (Math.min(1, Math.max(((1 - 0.01 / pixRat * dy)) * yDragVar0, 0.0001)))
+        },
+        null, null,
+        function () {
+            return osc.d;
+        },
+        function (isDepressed) {
+            showRadInfo = isDepressed;
+        }, null)
+
+    button.yDrag = true;
+    button.UDarrows = true;
+    panel.buttonArray.push(button);
+
+    return panel;
+}
+
+
+function createTimePanel(txt,xPos,yPos){
+    let panel = new Panel(xPos, yPos, X*0.333*3/5, uiY, txt);
+    panel.anyClickActivates = true;
+
+    let button = new PButton(panel, 0.0, 0.0, 0.333, 1, "t0",
+        function (dy, yDragVar0) {
+            hg.t0 = Math.min(10, Math.max((- 0.01 / pixRat * dy) + yDragVar0, -10))
+        }, [], [],
+        function () {
+            return hg.t0;
+        },
+        function (isDepressed) {
+            showRadInfo = isDepressed;
+        },
+    )
+    button.yDrag = true;
+    button.UDarrows = true;
+    panel.buttonArray.push(button)
+
+    button = new PButton(panel, 0.333, 0.0, 0.333, 1, "t",
+        function (dy, yDragVar0) {
+            hg.t1 = Math.min(1000, Math.max((1 - 0.01 / pixRat * dy) * yDragVar0, 1))
+
+        }, [], [],
+        function () {
+            return hg.t1;
+        },
+        function (isDepressed) {
+            showRadInfo = isDepressed;
+        },
+    )
+    button.yDrag = true;
+    button.UDarrows = true;
+    panel.buttonArray.push(button)
+
+    button = new PButton(panel, 0.666, 0.0, 0.333, 1, "dt",
+        function (dy, yDragVar0) {
+            // hg.dt = Math.min(1, Math.max((1 - 0.01 / pixRat * dy) * yDragVar0, 0.001))
+            hg.dt = Math.min(3, Math.max(-0.01 / pixRat * dy + yDragVar0, 0.01))
+        }, [], [],
+        function () {
+            return hg.dt;
+        },
+        function (isDepressed) {
+            showRadInfo = isDepressed;
+        },
+    )
+    button.yDrag = true;
+    button.UDarrows = true;
+    panel.buttonArray.push(button)
+
+
+
+    return panel
+}
+
+
+
+
+oscXpanel = createOscPanel(oscX, 'X', 0, Y - uiY)
+oscYpanel = createOscPanel(oscY, 'Y', X * 0.3333, Y - uiY)
+oscRpanel = createOscPanel(oscXrot, 'Rotary', X * 0.6666, Y - uiY)
+timePanel = createTimePanel('Time', X *(1-0.333*3/5), 0);
 topPanel = createTopPanel();
 sharePanel = createSharePanel();
-bottomPanel = createBottomPanel();
-panelArray = [topPanel, bottomPanel, sharePanel];
+// bottomPanel = createBottomPanel();
+panelArray = [topPanel, oscXpanel, oscYpanel, oscRpanel, timePanel,sharePanel];
 // panelArray = [bottomPanel];
 
 // wakeGalleryServer()
