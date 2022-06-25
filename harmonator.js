@@ -9,6 +9,7 @@ class Oscillator {
         this.df = 0;
         this.p = p;
         this.d = d;
+        this.autop = false;
     }
     val(t) {
         return baseAmp * this.a * Math.sin((this.f + this.df) * t + this.p * 6.28318530718) * Math.exp(-this.d * t);
@@ -21,6 +22,13 @@ class Oscillator {
             this.p = this.p + 1
         }
     }
+    update() {
+        if (this.autop){
+        this.p = this.p + 0.001;}
+    }
+    toggleAuto() {
+        this.autop = !this.autop;
+    }
 }
 class Point {
     constructor(x, y) {
@@ -29,82 +37,121 @@ class Point {
     }
 }
 class PButton {
-    constructor(panel, x, y, w, h, txt, fun, argObj, getXdragVar, getYdragVar, isDepressedFun, toggleValFun) {
+    constructor(panel, x, y, w, h, txt, fun, argObj, getXdragVar,
+        getYdragVar, isDepressedFun, toggleValFun, reset, setVar, autoStateFun, autoTogFun) {
         this.x = panel.x + x * panel.w;
         this.y = panel.y + y * panel.h;
+        // this.yb=y;
         this.w = w * panel.w;
         this.h = h * panel.h;
+        this.hb = this.h;
         this.txt = txt;
-        this.fun = fun;
-        this.argObj = argObj;
-        this.depressed = false;
+        this.fun = fun; // click function
+        this.argObj = argObj; // arg object to pas to fun upon click
+        this.depressed = false; //
         this.xDrag = false;
         this.yDrag = false;
-        this.toggle = false;
+        if (getYdragVar) {
+            this.yDrag = true;
+        }
         this.toggleValFun = toggleValFun;
+        this.toggle = false;
+        if (toggleValFun) {
+            this.toggle = true;
+        }
+
         this.y0;
         this.x0;
         this.xVar0;
         this.yVar0;
         this.getYdragVar = getYdragVar;
         this.getXdragVar = getXdragVar;
-        this.isDepressedFun = isDepressedFun;
+        this.setVar = setVar;
+        this.isDepressedFun = isDepressedFun; //pass true to this fun whole depressed
         this.UDarrows = false;
         this.LRarrows = false;
-        this.UDarrLen = this.h / 6;
+
         this.LRarrLen = this.w / 6;
+        this.reset = reset;
+        this.buttons = [];
+        this.autoStateFun = autoStateFun;
+        this.autoTogFun = autoTogFun;
+
+
+        if (this.reset) {
+            let button = new PButton(this, 0, 0.6, 1, 0.2, 'reset', this.setVar, this.reset, null, null, null, null, 0)
+            this.buttons.push(button);
+        }
+        if (this.autoStateFun) {
+            let button = new PButton(this, 0, 0.4, 1, 0.2, 'auto', this.autoTogFun, null, null, null, null, this.autoStateFun, 0, null)
+            this.buttons.push(button);
+        }
+        this.hb = this.hb - (this.buttons.length + this.yDrag) * 0.2 * this.h;
+        this.UDarrLen = this.hb / 6;
     }
     draw() {
         ctx.strokeStyle = hg.color;
         ctx.beginPath();
         ctx.rect(this.x, this.y, this.w, this.h);
         ctx.stroke();
+        // if (this.txt=='reset'){
+        //     console.log(this.x,this.y)
+        // }
 
         if (this.depressed) {
             ctx.fillStyle = hg.color;
-            ctx.fillRect(this.x, this.y, this.w, this.h)
+            ctx.fillRect(this.x, this.y, this.w, this.hb)
         }
         if (this.toggle) {
+            // console.log(this.toggleValFun)
             if (this.toggleValFun()) {
                 ctx.fillStyle = transCol;
-                ctx.fillRect(this.x, this.y, this.w, this.h)
+                ctx.fillRect(this.x, this.y, this.w, this.hb)
             }
         }
         if (this.UDarrows) {
             drawArrow(ctx,
-                this.x + this.w / 2, this.y + this.h / 2 + txtSize / 4,
-                this.x + this.w / 2, this.y + this.h / 2 + txtSize / 4 + this.UDarrLen,
+                this.x + this.w / 2, this.y + this.hb / 2 + txtSize / 4,
+                this.x + this.w / 2, this.y + this.hb / 2 + txtSize / 4 + this.UDarrLen,
                 baseLW, uiTextColor)
             drawArrow(ctx,
-                this.x + this.w / 2, this.y + this.h / 2 - txtSize / 4,
-                this.x + this.w / 2, this.y + this.h / 2 - txtSize / 4 - this.UDarrLen,
+                this.x + this.w / 2, this.y + this.hb / 2 - txtSize / 4,
+                this.x + this.w / 2, this.y + this.hb / 2 - txtSize / 4 - this.UDarrLen,
                 baseLW, uiTextColor)
         }
         if (this.LRarrows) {
             drawArrow(ctx,
-                this.x + this.w / 2 - txtSize / 2, this.y + this.h / 2,
-                this.x + this.w / 2 - txtSize / 2 - this.LRarrLen, this.y + this.h / 2,
+                this.x + this.w / 2 - txtSize / 2, this.y + this.hb / 2,
+                this.x + this.w / 2 - txtSize / 2 - this.LRarrLen, this.y + this.hb / 2,
                 baseLW, uiTextColor)
             drawArrow(ctx,
-                this.x + this.w / 2 + txtSize / 2, this.y + this.h / 2,
-                this.x + this.w / 2 + txtSize / 2 + this.LRarrLen, this.y + this.h / 2,
+                this.x + this.w / 2 + txtSize / 2, this.y + this.hb / 2,
+                this.x + this.w / 2 + txtSize / 2 + this.LRarrLen, this.y + this.hb / 2,
                 baseLW, uiTextColor)
         }
+        // console.log(this.buttons)
+        this.buttons.forEach(button => button.draw())
 
         ctx.fillStyle = uiTextColor;
         ctx.textAlign = "center";
         ctx.font = txtSize / 4 + 'px sans-serif';
         ctx.textBaseline = "middle";
         ctx.lineWidth = baseLW;
-        ctx.fillText(this.txt, this.x + this.w / 2, this.y + this.h / 2, this.w * 0.9);
+        ctx.fillText(this.txt, this.x + this.w / 2, this.y + this.hb / 2, this.w * 0.9);
+        // console.log(this.txt)
         if (this.yDrag) {
             // console.log(this.getYdragVar)
+            ctx.beginPath()
+            ctx.strokeStyle = hg.color;
+            ctx.rect(this.x, this.y + 0.8 * this.h, this.w, this.h * 0.2)
+            ctx.stroke()
             ctx.fillText(this.getYdragVar().toFixed(2), this.x + this.w / 2, this.y + this.h - txtSize / 4, this.w * 0.9);
         }
 
     }
     contains(x, y) {
-        return (x > this.x & x < (this.x + this.w) & y > this.y & y < (this.y + this.h));
+        return (x > this.x & x < (this.x + this.w) &
+            y > this.y & y < (this.y + this.hb));
     }
     action() {
         this.fun(this.argObj);
@@ -116,22 +163,28 @@ class PButton {
             this.y0 = y;
             if (this.yDrag) {
                 this.yVar0 = this.getYdragVar();
-                this.isDepressedFun(true);
+                // console.log(this.isDepressedFun)
+                if (this.isDepressedFun) {
+                    this.isDepressedFun(true);
+                }
             }
             if (this.xDrag) {
                 this.xVar0 = this.getXdragVar();
                 this.isDepressedFun(true);
             }
         }
+        this.buttons.forEach(button => button.pointerDown(x, y));
     }
     pointerUp(x, y) {
         if (!this.xDrag & !this.yDrag & this.depressed & this.contains(x, y)) {
+            // console.log('fun', this.fun, 'arg', this.argObj)
             this.action();
         }
         this.depressed = false;
         if (this.isDepressedFun) {
             this.isDepressedFun(false);
         }
+        this.buttons.forEach(button => button.pointerUp(x, y));
     }
     pointerMove(x, y) {
         if (!this.contains(x, y) & !this.yDrag & !this.xDrag) {
@@ -405,22 +458,12 @@ function pointerUpHandler(xc, yc) {
     if (!hg.auto) { requestAnimationFrame(anim); }
 }
 function doubleClickHandler(clickCase) {
-    // if (showWheels) {
-    //     if ((clickCase == "autoCCW" || clickCase == "autoCW") & pair.auto != 0) {
-    //         pair.auto = 0;
-    //     }
-    //     else if (clickCase == "autoCCW") {
-    //         pair.auto = -1;
-    //         anim(); //get the ball rolling...
-    //     }
-    //     else if (clickCase == "autoCW") {
-    //         pair.auto = 1;
-    //         anim();
-    //     }
-    // }
+
     topPanel.active = true;
-    bottomPanel.active = true;
-    showWheels = true;
+    timePanel.active = true;
+    oscXpanel.active=true;
+    oscYpanel.active = true;
+    oscRpanel.active=true;
 
 }
 function zoomHandler(dW, xc, yc) {
@@ -565,81 +608,21 @@ function createSharePanel() {
 function createTopPanel() {
 
     let uiBorder = X / 100;
-    let panel = new Panel(0 + uiBorder, 0 + uiBorder, .5*uiX - 2 * uiBorder, uiY);
+    let panel = new Panel(0 + uiBorder, 0 + uiBorder, .5 * uiX*1/5 - 2 * uiBorder, uiY);
     panel.anyClickActivates = true;
 
     panel.buttonArray.push(
-        new PButton(panel, 0.0, 0.0, 0.25, 0.333, "Share",
+        new PButton(panel, 0.0, 0.0, 1, 0.5, "Share",
             function () { sharePanel.active = true; })
     );
     panel.buttonArray.push(
-        new PButton(panel, 0.0, 0.333, 0.25, 0.666, "Hide",
+        new PButton(panel, 0.0, 0.5, 1, 0.5, "Hide",
             function () {
                 // showUI = false;
                 showWheels = false;
                 panelArray.forEach(panel => panel.active = false)
             })
     );
-
-    // panel.buttonArray.push(
-    //     new PButton(panel, 0.25, .0, 0.25, 0.333, "Clear All",
-    //         function () { pair.clearAll() })
-    // );
-    // panel.buttonArray.push(
-    //     new PButton(panel, 0.25, .333, 0.25, 0.666, "Clear",
-    //         function () { pair.clear(); })
-    // );
-    a1 = new PButton(panel, 0.25, .0, 0.25, 0.5, "Auto p1",
-        function () { hg.toggleAutoPhase(); }, [], [], [], null,
-        function () { return hg.autoPhase })
-    a1.toggle = true;
-    panel.buttonArray.push(a1);
-
-    a2 = new PButton(panel, 0.25, .50, 0.25, 0.5, "Auto p2",
-        function () { hg.toggleAutoPhaseRot(); }, [], [], [], null,
-        function () { return hg.autoPhaseRot })
-    a2.toggle = true;
-    panel.buttonArray.push(a2);
-
-    panel.buttonArray.push(
-        new PButton(panel, 0.5, .0, 0.25, 0.5, "Zero fine",
-            function () { hg.detune1 = 0; })
-    );
-
-
-
-
-    // panel.buttonArray.push(
-    //     new PButton(panel, 0.5, 0, 0.25, 0.333, "Invert",
-    //         function () { pair.inOut(); })
-    // );
-    // panel.buttonArray.push(
-    //     new PButton(panel, 0.5, .333, 0.25, 0.333, "Nudge +",
-    //         function () { return pair.nudge(1); })
-    // );
-    // panel.buttonArray.push(
-    //     new PButton(panel, 0.5, .666, 0.25, 0.333, "Nudge -",
-    //         function () { return pair.nudge(-1); })
-    // );
-
-    // panel.buttonArray.push(
-    //     new PButton(panel, 0.75, 0, 0.125, 0.333, "Reset",
-    //         function () { return pair.reset(); })
-    // );
-
-    // let lockButton = new PButton(panel, 0.875, 0, 0.125, 0.333, "Lock",
-    //     function () { return pair.toggleLock(); },
-    //     [], [], [], null,
-    //     function () { return pair.locked; })
-    // lockButton.toggle = true;
-    // panel.buttonArray.push(lockButton);
-
-
-    // panel.buttonArray.push(
-    //     new PButton(panel, 0.75, .333, 0.25, 0.666, "Trace",
-    //         function () { pair.fullTrace() })
-    // );
-
     return (panel)
 }
 function createBottomPanel() {
@@ -903,6 +886,172 @@ function createBottomPanel() {
 
     return panel;
 }
+
+function createOscPanel(osc, oscTxt, xPos, yPos) {
+    w = X / 3;
+    h = uiY;
+    let panel = new Panel(xPos, yPos, w, h, oscTxt);
+    panel.anyClickActivates = true;
+
+    let button = new OscPButton(panel, 0, 0, 0.20, 1, 'amp',
+        function (dy, yDragVar0) {
+            osc.a = (Math.min(2, Math.max((-0.005 / pixRat * dy) + yDragVar0, 0)))
+        },
+        null, null,
+        function () {
+            return osc.a;
+        },
+        function (isDepressed) {
+            showRadInfo = isDepressed;
+        }, null, reset = 1.0000,
+        function (a) {
+            osc.a = a;
+        })
+
+    button.yDrag = true;
+    button.UDarrows = true;
+    panel.buttonArray.push(button);
+
+    button = new OscPButton(panel, .2, 0, 0.20, 1, 'freq',
+        function (dy, yDragVar0) {
+            osc.f = Math.round(Math.min(10, Math.max((-0.05 / pixRat * dy) + yDragVar0, -10)))
+        },
+        null, null,
+        function () {
+            return osc.f;
+        },
+        function (isDepressed) {
+            showRadInfo = isDepressed;
+        }, null, reset = 1.0000,
+        function (a) {
+            osc.f = a;
+        })
+
+    button.yDrag = true;
+    button.UDarrows = true;
+    panel.buttonArray.push(button);
+
+    button = new OscPButton(panel, .4, 0, 0.20, 1, 'detune',
+        function (dy, yDragVar0) {
+            osc.df = Math.min(1, Math.max((-0.00005 / pixRat * dy) + yDragVar0, -1))
+        },
+        null, null,
+        function () {
+            return osc.df;
+        },
+        null, null, reset = 0.0001,
+        function (a) {
+            osc.df = a;
+        })
+
+    button.yDrag = true;
+    button.UDarrows = true;
+    panel.buttonArray.push(button);
+
+    button = new OscPButton(panel, .6, 0, 0.2, 1, 'phase',
+        function (dy, yDragVar0) {
+            osc.p = (Math.min(10, Math.max((-0.002 / pixRat * dy) + yDragVar0, -10)))
+        },
+        null, null,
+        function () {
+            return osc.p;
+        },
+        function (isDepressed) {
+            showRadInfo = isDepressed;
+        }, null, reset = 0.000001,
+        function (a) {
+            osc.p = a;
+        },
+        function () {
+            return osc.autop;
+        },
+        function () {
+            osc.toggleAuto();
+        }
+    )
+
+    button.yDrag = true;
+    button.UDarrows = true;
+    panel.buttonArray.push(button);
+
+    button = new OscPButton(panel, .8, 0, 0.2, 1, 'decay',
+        function (dy, yDragVar0) {
+            osc.d = (Math.min(1, Math.max(((1 - 0.01 / pixRat * dy)) * yDragVar0, 0.0001)))
+        },
+        null, null,
+        function () {
+            return osc.d;
+        },
+        function (isDepressed) {
+            showRadInfo = isDepressed;
+        }, null, reset = 0.01,
+        function (a) {
+            osc.d = a;
+        })
+
+    button.yDrag = true;
+    button.UDarrows = true;
+    panel.buttonArray.push(button);
+
+    return panel;
+}
+function createTimePanel(txt, xPos, yPos) {
+    let panel = new Panel(xPos, yPos, X * 0.333 * 3 / 5, uiY, txt);
+    panel.anyClickActivates = true;
+
+    let button = new PButton(panel, 0.0, 0.0, 0.333, 1, "t0",
+        function (dy, yDragVar0) {
+            hg.t0 = Math.min(10, Math.max((- 0.01 / pixRat * dy) + yDragVar0, -10))
+        }, [], [],
+        function () {
+            return hg.t0;
+        },
+        function (isDepressed) {
+            showRadInfo = isDepressed;
+        },
+    )
+    button.yDrag = true;
+    button.UDarrows = true;
+    panel.buttonArray.push(button)
+
+    button = new PButton(panel, 0.333, 0.0, 0.333, 1, "t",
+        function (dy, yDragVar0) {
+            hg.t1 = Math.min(1000, Math.max((1 - 0.01 / pixRat * dy) * yDragVar0, 1))
+
+        }, [], [],
+        function () {
+            return hg.t1;
+        },
+        function (isDepressed) {
+            showRadInfo = isDepressed;
+        },
+    )
+    button.yDrag = true;
+    button.UDarrows = true;
+    panel.buttonArray.push(button)
+
+    button = new PButton(panel, 0.666, 0.0, 0.333, 1, "dt",
+        function (dy, yDragVar0) {
+            // hg.dt = Math.min(1, Math.max((1 - 0.01 / pixRat * dy) * yDragVar0, 0.001))
+            hg.dt = Math.min(3, Math.max(-0.01 / pixRat * dy + yDragVar0, 0.01))
+        }, [], [],
+        function () {
+            return hg.dt;
+        },
+        function (isDepressed) {
+            showRadInfo = isDepressed;
+        },
+    )
+    button.yDrag = true;
+    button.UDarrows = true;
+    panel.buttonArray.push(button)
+
+
+
+    return panel
+}
+
+
 function submitToGallery() {
     let name = document.getElementById('name').value;
     localStorage.setItem('name', name);
@@ -989,10 +1138,7 @@ function linkOscDec(oscA, oscB) {
     oscB.d = oscA.d;
 }
 function anim() {
-    if (hg.auto) { requestAnimationFrame(anim); }
-    if (hg.auto) { // & !showColInfo & !showInfo & !showRadInfo) {
-        hg.update();
-    }
+   
     linkOscCirc(oscXrot, oscYrot);
     linkOscAmp(oscX, oscY);
     linkOscDec(oscX, oscY);
@@ -1002,50 +1148,15 @@ function anim() {
 
     //scaled stuff
     ctx.setTransform(scl, 0, 0, scl, xOff, yOff)
-    hg.calc()
-    hg.draw(ctx)
-    // 
-
+    hg.calc();
+    hg.draw(ctx);
     // fixed stuff
     ctx.setTransform(1, 0, 0, 1, 0, 0)
+    
     panelArray.forEach(panel => panel.draw())
 
-    // if (showInfo) {
-    //     pair.drawInfo();
-    // }
-    // if (showRadInfo) {
-    //     pair.drawRadInfo();
-    // }
-    // if (showColInfo) {
-    //     pair.drawColInfo();
-    // }
-
-    // if (topPanel.active) {
-    //     ctx.textAlign = "left"
-    // ctx.fillText('auto: ' + hg.auto, 20, uiY + 20)
-    // ctx.fillText('auto Phase 1: ' + hg.autoPhase, 20, uiY + 50)
-    // ctx.fillText('auto Phase 2: ' + hg.autoPhaseRot, 20, uiY + 80)
-
-    // ctx.fillText(
-    //     // 'o1 a: ' + Math.round(hg.a1 * 10000) / 10000 +
-    //     'f1: ' + Math.round(hg.f1 * 10000) / 10000 +
-    //     ', f2: ' + Math.round(hg.f2 * 10000) / 10000 +
-    //     ', detune1: ' + Math.round(hg.detune1 * 10000) / 10000
-    //     // ', p: ' + Math.round(hg.p1 * 10000) / 10000 +
-    //     // ', d: ' + Math.round(hg.d1 * 10000) / 10000
-    //     , 10, Y - uiY - 50)
-    // ctx.fillText(
-    //     // 'rot a: ' + Math.round(hg.a3 * 10000) / 10000 +
-    //     'f: ' + Math.round(hg.f3 * 10000) / 10000
-    //     // ', p: ' + Math.round(hg.p3 * 10000) / 10000 +
-    //     // ', d: ' + Math.round(hg.d3 * 10000) / 10000
-    //     , 10, Y - uiY - 20)
-
-    // ctx.fillText('scl='+Math.round(scl * 10000) / 10000, 20, uiY + 140)
-    // ctx.fillText('v21', 10, Y - 15)
-    // }
+    if (hg.auto) { requestAnimationFrame(anim); }
 }
-
 class Harmonograph {
     constructor(oscX, oscY, oscXrot, oscYrot) {
         this.hue = hueInit;
@@ -1064,9 +1175,7 @@ class Harmonograph {
         this.t1 = 100;
         this.dt = .05;
 
-        this.auto = true;
-        this.autoPhase = true;
-        this.autoPhaseRot = true;
+        this.auto = false;
 
         this.softStart = 10;
 
@@ -1092,16 +1201,9 @@ class Harmonograph {
             ymax: ymax,
         })
     }
-    toggleAutoPhase() {
-        this.autoPhase = !this.autoPhase;
-        this.checkAuto();
-    }
-    toggleAutoPhaseRot() {
-        this.autoPhaseRot = !this.autoPhaseRot;
-        this.checkAuto();
-    }
+
     checkAuto() {
-        if (!(this.autoPhase || this.autoPhaseRot)) {
+        if (!(oscX.autop || oscY.autop || oscXrot.autop || oscYrot.autop)) {
             this.auto = false;
         }
         else if (!this.auto) {
@@ -1128,6 +1230,12 @@ class Harmonograph {
     }
 
     calc() {
+        this.checkAuto()
+        this.oscX.update();
+        this.oscY.update();
+        this.oscXrot.update();
+        this.oscYrot.update();
+
         this.oscX.phaseBound();
         this.oscY.phaseBound();
         this.oscXrot.phaseBound();
@@ -1270,169 +1378,20 @@ oscY = new Oscillator(1.0, 1, 0.25, 0.001);
 oscXrot = new Oscillator(0.3, 1, 0, 0);
 oscYrot = new Oscillator(0.0, 1, 0.25, 0);
 
+oscArray = [oscX, oscY, oscXrot, oscYrot];
 
+// oscDefaults = { 'a': 1.0, 'f': 1, 'd': 0.01, 'p': 0, 'df': 0 }
+// oscIncs = { 'a': 0.001, 'f': .001, 'd': 0.0001, 'p': 0.001, 'df': 0.0001 }
 
 let hg = new Harmonograph(oscX, oscY, oscXrot, oscYrot)
 
-function createOscPanel(osc, oscTxt, xPos, yPos) {
-    w = X / 3;
-    h = uiY;
-    let panel = new Panel(xPos, yPos, w, h, oscTxt);
-    panel.anyClickActivates = true;
-
-    let button = new OscPButton(panel, 0, 0, 0.20, 1, 'amp',
-        function (dy, yDragVar0) {
-            osc.a = (Math.min(2, Math.max((-0.005 / pixRat * dy) + yDragVar0, 0)))
-        },
-        null, null,
-        function () {
-            return osc.a;
-        },
-        function (isDepressed) {
-            showRadInfo = isDepressed;
-        }, null)
-
-    button.yDrag = true;
-    button.UDarrows = true;
-    panel.buttonArray.push(button);
-
-    button = new OscPButton(panel, .2, 0, 0.20, 1, 'freq',
-        function (dy, yDragVar0) {
-            osc.f = Math.round(Math.min(10, Math.max((-0.05 / pixRat * dy) + yDragVar0, -10)))
-        },
-        null, null,
-        function () {
-            return osc.f;
-        },
-        function (isDepressed) {
-            showRadInfo = isDepressed;
-        }, null)
-
-    button.yDrag = true;
-    button.UDarrows = true;
-    panel.buttonArray.push(button);
-
-    button = new OscPButton(panel, .4, 0, 0.20, 1, 'detune',
-        function (dy, yDragVar0) {
-            osc.df = Math.min(1, Math.max((-0.00005 / pixRat * dy) + yDragVar0, -1))
-        },
-        null, null,
-        function () {
-            return osc.df;
-        },
-        function (isDepressed) {
-            showRadInfo = isDepressed;
-        }, null)
-
-    button.yDrag = true;
-    button.UDarrows = true;
-    panel.buttonArray.push(button);
-
-    button = new OscPButton(panel, .6, 0, 0.2, 1, 'phase',
-        function (dy, yDragVar0) {
-            osc.p = (Math.min(10, Math.max((-0.002 / pixRat * dy) + yDragVar0, -10)))
-        },
-        null, null,
-        function () {
-            return osc.p;
-        },
-        function (isDepressed) {
-            showRadInfo = isDepressed;
-        }, null)
-
-    button.yDrag = true;
-    button.UDarrows = true;
-    panel.buttonArray.push(button);
-
-    button = new OscPButton(panel, .8, 0, 0.2, 1, 'decay',
-        function (dy, yDragVar0) {
-            osc.d = (Math.min(1, Math.max(((1 - 0.01 / pixRat * dy)) * yDragVar0, 0.0001)))
-        },
-        null, null,
-        function () {
-            return osc.d;
-        },
-        function (isDepressed) {
-            showRadInfo = isDepressed;
-        }, null)
-
-    button.yDrag = true;
-    button.UDarrows = true;
-    panel.buttonArray.push(button);
-
-    return panel;
-}
-
-
-function createTimePanel(txt,xPos,yPos){
-    let panel = new Panel(xPos, yPos, X*0.333*3/5, uiY, txt);
-    panel.anyClickActivates = true;
-
-    let button = new PButton(panel, 0.0, 0.0, 0.333, 1, "t0",
-        function (dy, yDragVar0) {
-            hg.t0 = Math.min(10, Math.max((- 0.01 / pixRat * dy) + yDragVar0, -10))
-        }, [], [],
-        function () {
-            return hg.t0;
-        },
-        function (isDepressed) {
-            showRadInfo = isDepressed;
-        },
-    )
-    button.yDrag = true;
-    button.UDarrows = true;
-    panel.buttonArray.push(button)
-
-    button = new PButton(panel, 0.333, 0.0, 0.333, 1, "t",
-        function (dy, yDragVar0) {
-            hg.t1 = Math.min(1000, Math.max((1 - 0.01 / pixRat * dy) * yDragVar0, 1))
-
-        }, [], [],
-        function () {
-            return hg.t1;
-        },
-        function (isDepressed) {
-            showRadInfo = isDepressed;
-        },
-    )
-    button.yDrag = true;
-    button.UDarrows = true;
-    panel.buttonArray.push(button)
-
-    button = new PButton(panel, 0.666, 0.0, 0.333, 1, "dt",
-        function (dy, yDragVar0) {
-            // hg.dt = Math.min(1, Math.max((1 - 0.01 / pixRat * dy) * yDragVar0, 0.001))
-            hg.dt = Math.min(3, Math.max(-0.01 / pixRat * dy + yDragVar0, 0.01))
-        }, [], [],
-        function () {
-            return hg.dt;
-        },
-        function (isDepressed) {
-            showRadInfo = isDepressed;
-        },
-    )
-    button.yDrag = true;
-    button.UDarrows = true;
-    panel.buttonArray.push(button)
-
-
-
-    return panel
-}
-
-
-
-
-oscXpanel = createOscPanel(oscX, 'X', 0, Y - uiY)
-oscYpanel = createOscPanel(oscY, 'Y', X * 0.3333, Y - uiY)
-oscRpanel = createOscPanel(oscXrot, 'Rotary', X * 0.6666, Y - uiY)
-timePanel = createTimePanel('Time', X *(1-0.333*3/5), 0);
+oscXpanel = createOscPanel(oscX, 'x', 0, Y - uiY)
+oscYpanel = createOscPanel(oscY, 'y', X * 0.3333, Y - uiY)
+oscRpanel = createOscPanel(oscXrot, 'rotary', X * 0.6666, Y - uiY)
+timePanel = createTimePanel('time', X * (1 - 0.333 * 3 / 5), 0);
 topPanel = createTopPanel();
 sharePanel = createSharePanel();
-// bottomPanel = createBottomPanel();
-panelArray = [topPanel, oscXpanel, oscYpanel, oscRpanel, timePanel,sharePanel];
-// panelArray = [bottomPanel];
-
+panelArray = [topPanel, oscXpanel, oscYpanel, oscRpanel, timePanel, sharePanel];
 // wakeGalleryServer()
 setGallerySubmitHTML();
 addPointerListeners();
