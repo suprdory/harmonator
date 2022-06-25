@@ -1138,7 +1138,8 @@ function linkOscDec(oscA, oscB) {
     oscB.d = oscA.d;
 }
 function anim() {
-   
+    
+
     linkOscCirc(oscXrot, oscYrot);
     linkOscAmp(oscX, oscY);
     linkOscDec(oscX, oscY);
@@ -1150,11 +1151,10 @@ function anim() {
     ctx.setTransform(scl, 0, 0, scl, xOff, yOff)
     hg.calc();
     hg.draw(ctx);
+    
     // fixed stuff
     ctx.setTransform(1, 0, 0, 1, 0, 0)
-    
     panelArray.forEach(panel => panel.draw())
-
     if (hg.auto) { requestAnimationFrame(anim); }
 }
 class Harmonograph {
@@ -1208,7 +1208,7 @@ class Harmonograph {
         }
         else if (!this.auto) {
             this.auto = true;
-            anim();
+            // anim();
         }
     }
 
