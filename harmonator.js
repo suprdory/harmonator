@@ -206,12 +206,12 @@ class OscPButton extends PButton {
 class Panel {
     constructor(x, py, w, ph, txt) {
         this.active = true;
-        this.x = x;
-        this.y = py;
-        this.w = w;
-        this.h = ph;
-        this.py = py;
-        this.ph = ph;
+        this.x = x+uiBorder;
+        this.y = py+uiBorder;
+        this.w = w-2*uiBorder;
+        this.h = ph-2*uiBorder;
+        this.py = this.y;
+        this.ph = this.h;
         this.anyClickActivates = false;
         this.overlay = false;
         this.buttonArray = [];
@@ -219,8 +219,8 @@ class Panel {
         this.titH = txtSize / 2;
         this.txt = txt;
         if (txt) {
-            this.y = py + this.titH;
-            this.h = ph - this.titH;
+            this.y = this.py + this.titH;
+            this.h = this.ph - this.titH;
         }
 
     }
@@ -241,7 +241,7 @@ class Panel {
             if (this.txt) {
                 ctx.beginPath();
                 ctx.strokeStyle = hg.color;
-                ctx.lineWidth = baseLW * 3.0;
+                ctx.lineWidth = baseLW * 2.0;
                 ctx.rect(this.x, this.py, this.w, this.titH)
                 ctx.stroke();
                 ctx.fillStyle = uiTextColor;
@@ -254,7 +254,7 @@ class Panel {
             //main border
             ctx.beginPath();
             ctx.strokeStyle = hg.color;
-            ctx.lineWidth = baseLW * 3;
+            ctx.lineWidth = baseLW * 2;
             ctx.rect(this.x, this.py, this.w, this.ph)
             ctx.stroke();
             ctx.lineWidth = baseLW * 1;
@@ -607,8 +607,7 @@ function createSharePanel() {
 }
 function createTopPanel() {
 
-    let uiBorder = X / 100;
-    let panel = new Panel(0 + uiBorder, 0 + uiBorder, .5 * uiX*1/5 - 2 * uiBorder, uiY);
+    let panel = new Panel(0 , 0 , .5 * uiX*1/5, uiY);
     panel.anyClickActivates = true;
 
     panel.buttonArray.push(
@@ -888,7 +887,7 @@ function createBottomPanel() {
 }
 
 function createOscPanel(osc, oscTxt, xPos, yPos) {
-    w = X / 3;
+    w = X / 2;
     h = uiY;
     let panel = new Panel(xPos, yPos, w, h, oscTxt);
     panel.anyClickActivates = true;
@@ -996,7 +995,7 @@ function createOscPanel(osc, oscTxt, xPos, yPos) {
     return panel;
 }
 function createTimePanel(txt, xPos, yPos) {
-    let panel = new Panel(xPos, yPos, X * 0.333 * 3 / 5, uiY, txt);
+    let panel = new Panel(xPos, yPos, X * 0.5 * 3 / 5, uiY, txt);
     panel.anyClickActivates = true;
 
     let button = new PButton(panel, 0.0, 0.0, 0.333, 1, "t0",
@@ -1342,6 +1341,7 @@ const bgFillStyle = "hsl(" + hueInit + ",100%,5%)";
 const bgFillStyleAlpha = "hsla(" + hueInit + ",100%,5%,.80)";
 const transCol = "rgb(128,128,128,0.4)"
 const uiTextColor = "white"
+const uiBorder = X / 100;
 canvas.style.backgroundColor = bgFillStyle
 
 const galleryLW = 1;
@@ -1359,7 +1359,7 @@ let xOff = X / 2;
 let yOff = Y / 2;
 
 // ui size
-let uiY = 0.2 * Y;
+let uiY = 0.25 * Y;
 let uiX = X;
 
 if (X > 1.4 * Y) {
@@ -1386,9 +1386,9 @@ oscArray = [oscX, oscY, oscXrot, oscYrot];
 let hg = new Harmonograph(oscX, oscY, oscXrot, oscYrot)
 
 oscXpanel = createOscPanel(oscX, 'x', 0, Y - uiY)
-oscYpanel = createOscPanel(oscY, 'y', X * 0.3333, Y - uiY)
-oscRpanel = createOscPanel(oscXrot, 'rotary', X * 0.6666, Y - uiY)
-timePanel = createTimePanel('time', X * (1 - 0.333 * 3 / 5), 0);
+oscYpanel = createOscPanel(oscY, 'y', X * 0.5, Y - uiY)
+oscRpanel = createOscPanel(oscXrot, 'rotary', X * 0.15, 0)
+timePanel = createTimePanel('time', X * .7, 0);
 topPanel = createTopPanel();
 sharePanel = createSharePanel();
 panelArray = [topPanel, oscXpanel, oscYpanel, oscRpanel, timePanel, sharePanel];
