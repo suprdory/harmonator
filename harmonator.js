@@ -381,18 +381,18 @@ function pointerDownHandler(xc, yc, n = 1) {
         }
         lastTouch = now;
 
-        if (((y > .5 * Y & y < (Y - uiY)) & !isLandscape) ||
-            ((y > .5 * Y & y < Y & x > uiX) & isLandscape)) {
-            clickCase = "autoCW";
-        }
+        // if (((y > .5 * Y & y < (Y - uiY)) & !isLandscape) ||
+        //     ((y > .5 * Y & y < Y & x > uiX) & isLandscape)) {
+        //     clickCase = "autoCW";
+        // }
 
-        else if (((y < .5 * Y & y > (uiY)) & !isLandscape) ||
-            ((y < .5 * Y & y > 0 & x > uiX) & isLandscape)) {
-            clickCase = "autoCCW";
-        }
-        else {
-            clickCase = null;
-        }
+        // else if (((y < .5 * Y & y > (uiY)) & !isLandscape) ||
+        //     ((y < .5 * Y & y > 0 & x > uiX) & isLandscape)) {
+        //     clickCase = "autoCCW";
+        // }
+        // else {
+        //     clickCase = null;
+        // }
     }
 
     xt = (x - xOff) / (scl)
@@ -400,9 +400,12 @@ function pointerDownHandler(xc, yc, n = 1) {
 
 
     if (
-        !isLandscape & topPanel.active & (y < (Y - uiY) & y > uiY) ||
-        isLandscape & topPanel.active & (x > uiX) ||
+        // !isLandscape & topPanel.active & (y < (Y - uiY) & y > uiY) ||
+        // isLandscape & topPanel.active & (x > uiX) ||
+        // !topPanel.active
+        topPanel.active & (y < (Y - uiY) & y > uiY) ||
         !topPanel.active
+
     ) {
         mselect = "pan";
         y0 = y;
@@ -1368,7 +1371,7 @@ let uiX = X;
 //     xOff = 2 * X / 3;
 // }
 // else {
-//     isLandscape = false;
+    // isLandscape = false;
 // }
 
 let baseAmp = 0.2 * Math.min(X, Y)
