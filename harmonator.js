@@ -1050,7 +1050,6 @@ function createTimePanel(txt, xPos, yPos) {
     return panel
 }
 
-
 function submitToGallery() {
     let name = document.getElementById('name').value;
     localStorage.setItem('name', name);
@@ -1362,15 +1361,15 @@ let yOff = Y / 2;
 let uiY = 0.25 * Y;
 let uiX = X;
 
-if (X > 1.4 * Y) {
-    isLandscape = true
-    uiY = 0.4 * Y;
-    uiX = 0.333 * X;
-    xOff = 2 * X / 3;
-}
-else {
-    isLandscape = false;
-}
+// if (X > 1.4 * Y) {
+//     isLandscape = true
+//     uiY = 0.4 * Y;
+//     uiX = 0.333 * X;
+//     xOff = 2 * X / 3;
+// }
+// else {
+//     isLandscape = false;
+// }
 
 let baseAmp = 0.2 * Math.min(X, Y)
 oscX = new Oscillator(1.0, 2, 0.0, 0.01);
