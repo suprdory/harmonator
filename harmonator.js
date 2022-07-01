@@ -23,8 +23,9 @@ class Oscillator {
         }
     }
     update() {
-        if (this.autop){
-        this.p = this.p + 0.001;}
+        if (this.autop) {
+            this.p = this.p + 0.001;
+        }
     }
     toggleAuto() {
         this.autop = !this.autop;
@@ -206,10 +207,10 @@ class OscPButton extends PButton {
 class Panel {
     constructor(x, py, w, ph, txt) {
         this.active = true;
-        this.x = x+uiBorder;
-        this.y = py+uiBorder;
-        this.w = w-2*uiBorder;
-        this.h = ph-2*uiBorder;
+        this.x = x + uiBorder;
+        this.y = py + uiBorder;
+        this.w = w - 2 * uiBorder;
+        this.h = ph - 2 * uiBorder;
         this.py = this.y;
         this.ph = this.h;
         this.anyClickActivates = false;
@@ -464,9 +465,9 @@ function doubleClickHandler(clickCase) {
 
     topPanel.active = true;
     timePanel.active = true;
-    oscXpanel.active=true;
+    oscXpanel.active = true;
     oscYpanel.active = true;
-    oscRpanel.active=true;
+    oscRpanel.active = true;
 
 }
 function zoomHandler(dW, xc, yc) {
@@ -609,8 +610,8 @@ function createSharePanel() {
 
 }
 function createTopPanel() {
-
-    let panel = new Panel(0 , 0 , .5 * uiX*1/5, uiY);
+    w=Math.min(1*maxPanelWidth,.5 * uiX * 1 / 5);
+    let panel = new Panel(0, 0, w, uiY);
     panel.anyClickActivates = true;
 
     panel.buttonArray.push(
@@ -890,7 +891,7 @@ function createBottomPanel() {
 }
 
 function createOscPanel(osc, oscTxt, xPos, yPos) {
-    w = X / 2;
+    w = Math.min(X / 2, maxPanelWidth * 5);
     h = uiY;
     let panel = new Panel(xPos, yPos, w, h, oscTxt);
     panel.anyClickActivates = true;
@@ -998,7 +999,8 @@ function createOscPanel(osc, oscTxt, xPos, yPos) {
     return panel;
 }
 function createTimePanel(txt, xPos, yPos) {
-    let panel = new Panel(xPos, yPos, X * 0.5 * 3 / 5, uiY, txt);
+    w = Math.min(X * 0.5 * 3 / 5, maxPanelWidth * 3);
+    let panel = new Panel(xPos, yPos, w, uiY, txt);
     panel.anyClickActivates = true;
 
     let button = new PButton(panel, 0.0, 0.0, 0.333, 1, "t0",
@@ -1139,7 +1141,7 @@ function linkOscDec(oscA, oscB) {
     oscB.d = oscA.d;
 }
 function anim() {
-    
+
 
     linkOscCirc(oscXrot, oscYrot);
     linkOscAmp(oscX, oscY);
@@ -1152,7 +1154,7 @@ function anim() {
     ctx.setTransform(scl, 0, 0, scl, xOff, yOff)
     hg.calc();
     hg.draw(ctx);
-    
+
     // fixed stuff
     ctx.setTransform(1, 0, 0, 1, 0, 0)
     panelArray.forEach(panel => panel.draw())
@@ -1343,8 +1345,10 @@ const bgFillStyle = "hsl(" + hueInit + ",100%,5%)";
 const bgFillStyleAlpha = "hsla(" + hueInit + ",100%,5%,.80)";
 const transCol = "rgb(128,128,128,0.4)"
 const uiTextColor = "white"
-const uiBorder = X / 100;
+const uiBorder = 5;
+
 canvas.style.backgroundColor = bgFillStyle
+
 
 const galleryLW = 1;
 const gallerySize = 1080;
@@ -1356,13 +1360,41 @@ var prevDiff = 0;
 var curDiff = 0;
 var dDiff = 0;
 
-// initial screen centre
-let xOff = X / 2;
-let yOff = Y / 2;
+
 
 // ui size
 let uiY = 0.25 * Y;
 let uiX = X;
+
+const maxPanelWidth = 100;
+let nOscButtons = 18
+if (X > maxPanelWidth * nOscButtons) {
+    oXx = 0;
+    oXy = Y - uiY;
+    oYx = maxPanelWidth * 5;
+    oYy = Y - uiY;
+    oRx = maxPanelWidth * 10;
+    oRy = Y - uiY;
+    oTx = maxPanelWidth * 15;
+    oTy = Y - uiY;
+    // initial screen centre
+    xOff = X / 2;
+    yOff = (Y-uiY) / 2;
+    baseAmp = 0.25 * Math.min(X, Y)
+} else {
+    oXx = 0
+    oXy = Y - uiY
+    oYx = X * .5
+    oYy = Y - uiY
+    oRx = X * .15
+    oRy = 0
+    oTx = X * 0.7;
+    oTy = 0;
+    // initial screen centre
+    xOff = X / 2;
+    yOff = Y / 2;
+    baseAmp = 0.18 * Math.min(X, Y)
+}
 
 // if (X > 1.4 * Y) {
 //     isLandscape = true
@@ -1371,10 +1403,9 @@ let uiX = X;
 //     xOff = 2 * X / 3;
 // }
 // else {
-    // isLandscape = false;
+// isLandscape = false;
 // }
 
-let baseAmp = 0.2 * Math.min(X, Y)
 oscX = new Oscillator(1.0, 2, 0.0, 0.01);
 oscY = new Oscillator(1.0, 1, 0.25, 0.001);
 oscXrot = new Oscillator(0.3, 1, 0, 0);
@@ -1387,10 +1418,10 @@ oscArray = [oscX, oscY, oscXrot, oscYrot];
 
 let hg = new Harmonograph(oscX, oscY, oscXrot, oscYrot)
 
-oscXpanel = createOscPanel(oscX, 'x', 0, Y - uiY)
-oscYpanel = createOscPanel(oscY, 'y', X * 0.5, Y - uiY)
-oscRpanel = createOscPanel(oscXrot, 'rotary', X * 0.15, 0)
-timePanel = createTimePanel('time', X * .7, 0);
+oscXpanel = createOscPanel(oscX, 'x', oXx, oXy)
+oscYpanel = createOscPanel(oscY, 'y', oYx, oYy)
+oscRpanel = createOscPanel(oscXrot, 'rotary', oRx, oRy)
+timePanel = createTimePanel('time', oTx, oTy);
 topPanel = createTopPanel();
 sharePanel = createSharePanel();
 panelArray = [topPanel, oscXpanel, oscYpanel, oscRpanel, timePanel, sharePanel];
