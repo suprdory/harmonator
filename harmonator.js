@@ -10,9 +10,13 @@ class Oscillator {
         this.p = p;
         this.d = d;
         this.autop = false;
+        this.z=0
     }
     val(t) {
         return baseAmp * this.a * Math.sin((this.f + this.df) * t + this.p * 6.28318530718) * Math.exp(-this.d * t);
+    }
+    valNoBaseAmp(t) {
+        return this.z+this.a * Math.sin((this.f + this.df) * t + this.p * 6.28318530718) * Math.exp(-this.d * t);
     }
     phaseBound() {
         if (this.p > 1) {
@@ -32,177 +36,11 @@ class Oscillator {
     }
 }
 class Point {
-    constructor(x, y) {
+    constructor(x, y, hue) {
         this.x = x;
         this.y = y;
+        this.hue = hue;
     }
-}
-class PButton {
-    constructor(panel, x, y, w, h, txt, fun, argObj, getXdragVar,
-        getYdragVar, isDepressedFun, toggleValFun, reset, setVar, autoStateFun, autoTogFun) {
-        this.x = panel.x + x * panel.w;
-        this.y = panel.y + y * panel.h;
-        // this.yb=y;
-        this.w = w * panel.w;
-        this.h = h * panel.h;
-        this.hb = this.h;
-        this.txt = txt;
-        this.fun = fun; // click function
-        this.argObj = argObj; // arg object to pas to fun upon click
-        this.depressed = false; //
-        this.xDrag = false;
-        this.yDrag = false;
-        if (getYdragVar) {
-            this.yDrag = true;
-        }
-        this.toggleValFun = toggleValFun;
-        this.toggle = false;
-        if (toggleValFun) {
-            this.toggle = true;
-        }
-
-        this.y0;
-        this.x0;
-        this.xVar0;
-        this.yVar0;
-        this.getYdragVar = getYdragVar;
-        this.getXdragVar = getXdragVar;
-        this.setVar = setVar;
-        this.isDepressedFun = isDepressedFun; //pass true to this fun whole depressed
-        this.UDarrows = false;
-        this.LRarrows = false;
-
-        this.LRarrLen = this.w / 6;
-        this.reset = reset;
-        this.buttons = [];
-        this.autoStateFun = autoStateFun;
-        this.autoTogFun = autoTogFun;
-
-
-        if (this.reset) {
-            let button = new PButton(this, 0, 0.6, 1, 0.2, 'reset', this.setVar, this.reset, null, null, null, null, 0)
-            this.buttons.push(button);
-        }
-        if (this.autoStateFun) {
-            let button = new PButton(this, 0, 0.4, 1, 0.2, 'auto', this.autoTogFun, null, null, null, null, this.autoStateFun, 0, null)
-            this.buttons.push(button);
-        }
-        this.hb = this.hb - (this.buttons.length + this.yDrag) * 0.2 * this.h;
-        this.UDarrLen = this.hb / 6;
-    }
-    draw() {
-        ctx.strokeStyle = hg.color;
-        ctx.beginPath();
-        ctx.rect(this.x, this.y, this.w, this.h);
-        ctx.stroke();
-        // if (this.txt=='reset'){
-        //     console.log(this.x,this.y)
-        // }
-
-        if (this.depressed) {
-            ctx.fillStyle = hg.color;
-            ctx.fillRect(this.x, this.y, this.w, this.hb)
-        }
-        if (this.toggle) {
-            // console.log(this.toggleValFun)
-            if (this.toggleValFun()) {
-                ctx.fillStyle = transCol;
-                ctx.fillRect(this.x, this.y, this.w, this.hb)
-            }
-        }
-        if (this.UDarrows) {
-            drawArrow(ctx,
-                this.x + this.w / 2, this.y + this.hb / 2 + txtSize / 4,
-                this.x + this.w / 2, this.y + this.hb / 2 + txtSize / 4 + this.UDarrLen,
-                baseLW, uiTextColor)
-            drawArrow(ctx,
-                this.x + this.w / 2, this.y + this.hb / 2 - txtSize / 4,
-                this.x + this.w / 2, this.y + this.hb / 2 - txtSize / 4 - this.UDarrLen,
-                baseLW, uiTextColor)
-        }
-        if (this.LRarrows) {
-            drawArrow(ctx,
-                this.x + this.w / 2 - txtSize / 2, this.y + this.hb / 2,
-                this.x + this.w / 2 - txtSize / 2 - this.LRarrLen, this.y + this.hb / 2,
-                baseLW, uiTextColor)
-            drawArrow(ctx,
-                this.x + this.w / 2 + txtSize / 2, this.y + this.hb / 2,
-                this.x + this.w / 2 + txtSize / 2 + this.LRarrLen, this.y + this.hb / 2,
-                baseLW, uiTextColor)
-        }
-        // console.log(this.buttons)
-        this.buttons.forEach(button => button.draw())
-
-        ctx.fillStyle = uiTextColor;
-        ctx.textAlign = "center";
-        ctx.font = txtSize / 4 + 'px sans-serif';
-        ctx.textBaseline = "middle";
-        ctx.lineWidth = baseLW;
-        ctx.fillText(this.txt, this.x + this.w / 2, this.y + this.hb / 2, this.w * 0.9);
-        // console.log(this.txt)
-        if (this.yDrag) {
-            // console.log(this.getYdragVar)
-            ctx.beginPath()
-            ctx.strokeStyle = hg.color;
-            ctx.rect(this.x, this.y + 0.8 * this.h, this.w, this.h * 0.2)
-            ctx.stroke()
-            ctx.fillText(this.getYdragVar().toFixed(2), this.x + this.w / 2, this.y + this.h - txtSize / 4, this.w * 0.9);
-        }
-
-    }
-    contains(x, y) {
-        return (x > this.x & x < (this.x + this.w) &
-            y > this.y & y < (this.y + this.hb));
-    }
-    action() {
-        this.fun(this.argObj);
-    }
-    pointerDown(x, y) {
-        if (this.contains(x, y)) {
-            this.depressed = true;
-            this.x0 = x;
-            this.y0 = y;
-            if (this.yDrag) {
-                this.yVar0 = this.getYdragVar();
-                // console.log(this.isDepressedFun)
-                if (this.isDepressedFun) {
-                    this.isDepressedFun(true);
-                }
-            }
-            if (this.xDrag) {
-                this.xVar0 = this.getXdragVar();
-                this.isDepressedFun(true);
-            }
-        }
-        this.buttons.forEach(button => button.pointerDown(x, y));
-    }
-    pointerUp(x, y) {
-        if (!this.xDrag & !this.yDrag & this.depressed & this.contains(x, y)) {
-            // console.log('fun', this.fun, 'arg', this.argObj)
-            this.action();
-        }
-        this.depressed = false;
-        if (this.isDepressedFun) {
-            this.isDepressedFun(false);
-        }
-        this.buttons.forEach(button => button.pointerUp(x, y));
-    }
-    pointerMove(x, y) {
-        if (!this.contains(x, y) & !this.yDrag & !this.xDrag) {
-            this.depressed = false;
-        }
-        if (this.xDrag & this.yDrag & this.depressed) {
-            this.fun(y - this.y0, this.yVar0, x - this.x0, this.xVar0);
-        }
-        else if (this.yDrag & this.depressed) {
-            this.fun(y - this.y0, this.yVar0);
-        }
-        else if (this.xDrag & this.depressed) {
-            this.fun(x - this.x0, this.xVar0);
-        }
-    }
-}
-class OscPButton extends PButton {
 }
 class Panel {
     constructor(x, py, w, ph, txt) {
@@ -468,6 +306,8 @@ function doubleClickHandler(clickCase) {
     oscXpanel.active = true;
     oscYpanel.active = true;
     oscRpanel.active = true;
+    colPanel.active=true;
+    oscLpanel.active=true;
 
 }
 function zoomHandler(dW, xc, yc) {
@@ -610,7 +450,7 @@ function createSharePanel() {
 
 }
 function createTopPanel() {
-    w=Math.min(1*maxPanelWidth,.5 * uiX * 1 / 5);
+    w = Math.min(1 * maxPanelWidth, .5 * uiX * 1 / 5);
     let panel = new Panel(0, 0, w, uiY);
     panel.anyClickActivates = true;
 
@@ -628,433 +468,6 @@ function createTopPanel() {
     );
     return (panel)
 }
-function createBottomPanel() {
-
-    let uiBorder = X / 100;
-    let panel = new Panel(0 + uiBorder, Y - uiY - 2 * uiBorder + uiBorder, uiX - 2 * uiBorder, uiY, 'slider');
-    panel.anyClickActivates = true;
-
-    let dragButton1 = new PButton(panel, 0.0, 0, 0.1, 1, "f1",
-        function (dy, yDragVar0) {
-            showWheelsOverride = true;
-            // pair.penUp();
-            hg.f1 = Math.round(Math.min(10, Math.max((-0.05 / pixRat * dy) + yDragVar0, 0)))
-            // pair.penDown();
-
-        }, [], [],
-        function () {
-            return hg.f1;
-        },
-        function (isDepressed) {
-            showRadInfo = isDepressed;
-        },
-    )
-    dragButton1.yDrag = true;
-    dragButton1.UDarrows = true;
-    panel.buttonArray.push(dragButton1);
-
-    let dragButton2 = new PButton(panel, 0.1, 0, 0.1, 1, "f2",
-        function (dy, yDragVar0) {
-            showWheelsOverride = true;
-            // pair.penUp();
-            hg.f2 = Math.round(Math.min(10, Math.max((-0.05 / pixRat * dy) + yDragVar0, 0)))
-            // pair.penDown();
-
-        }, [], [],
-        function () {
-            return hg.f2;
-        },
-        function (isDepressed) {
-            showRadInfo = isDepressed;
-        },
-    )
-    dragButton2.yDrag = true;
-    dragButton2.UDarrows = true;
-    panel.buttonArray.push(dragButton2);
-
-    let dragButton1a = new PButton(panel, 0.2, 0, 0.1, 1, "fine",
-        function (dy, yDragVar0) {
-            showWheelsOverride = true;
-            // pair.penUp();
-            hg.detune1 = (Math.min(1, Math.max((-0.0001 / pixRat * dy) + yDragVar0, -1)))
-            // pair.penDown();
-
-        }, [], [],
-        function () {
-            return hg.detune1;
-        },
-        function (isDepressed) {
-            showRadInfo = isDepressed;
-        },
-    )
-    dragButton1a.yDrag = true;
-    dragButton1a.UDarrows = true;
-    panel.buttonArray.push(dragButton1a);
-
-
-
-    let dragButton3 = new PButton(panel, 0.3, 0.0, 0.1, 1, "p1",
-        function (dy, yDragVar0) {
-            hg.p1 = Math.min(10, Math.max(-0.002 / pixRat * dy + yDragVar0, -10))
-        }, [], [],
-        function () {
-            return hg.p1;
-        },
-        function (isDepressed) {
-            showRadInfo = isDepressed;
-        },
-    )
-    dragButton3.yDrag = true;
-    dragButton3.UDarrows = true;
-    panel.buttonArray.push(dragButton3);
-
-
-    let dragButton5 = new PButton(panel, 0.4, 0.0, 0.1, 1, "d1",
-        function (dy, yDragVar0) {
-            hg.d1 = Math.min(10, Math.max((1 - 0.01 / pixRat * dy) * yDragVar0, 0.000001))
-            hg.d2 = Math.min(10, Math.max((1 - 0.01 / pixRat * dy) * yDragVar0, 0.000001))
-        }, [], [],
-        function () {
-            return hg.d1;
-        },
-        function (isDepressed) {
-            showRadInfo = isDepressed;
-        },
-    )
-    dragButton5.yDrag = true;
-    dragButton5.UDarrows = true;
-    panel.buttonArray.push(dragButton5);
-
-
-
-    let dragButton6 = new PButton(panel, 0.5, 0.0, 0.1, 1, "t0",
-        function (dy, yDragVar0) {
-            hg.t0 = Math.min(10, Math.max((- 0.01 / pixRat * dy) + yDragVar0, -10))
-
-        }, [], [],
-        function () {
-            return hg.t0;
-        },
-        function (isDepressed) {
-            showRadInfo = isDepressed;
-        },
-    )
-    dragButton6.yDrag = true;
-    dragButton6.UDarrows = true;
-    panel.buttonArray.push(dragButton6)
-
-    let dragButton7 = new PButton(panel, 0.6, 0.0, 0.1, 1, "t",
-        function (dy, yDragVar0) {
-            hg.t1 = Math.min(1000, Math.max((1 - 0.01 / pixRat * dy) * yDragVar0, 1))
-
-        }, [], [],
-        function () {
-            return hg.t1;
-        },
-        function (isDepressed) {
-            showRadInfo = isDepressed;
-        },
-    )
-    dragButton7.yDrag = true;
-    dragButton7.UDarrows = true;
-    panel.buttonArray.push(dragButton7)
-
-
-    let dragButton8 = new PButton(panel, 0.7, 0.0, 0.1, 1, "a",
-        function (dy, yDragVar0) {
-            hg.a3 = Math.min(X, Math.max((-1.0 / pixRat * dy) + yDragVar0, -X))
-
-        }, [], [],
-        function () {
-            return hg.a3;
-        },
-        function (isDepressed) {
-            showRadInfo = isDepressed;
-        },
-    )
-    dragButton8.yDrag = true;
-    dragButton8.UDarrows = true;
-    panel.buttonArray.push(dragButton8)
-
-    let dragButton9 = new PButton(panel, 0.8, 0.0, 0.1, 1, "f",
-        function (dy, yDragVar0) {
-            hg.f3 = Math.round(Math.min(20, Math.max((-0.05 / pixRat * dy) + yDragVar0, -20)))
-
-        }, [], [],
-        function () {
-            return hg.f3;
-        },
-        function (isDepressed) {
-            showRadInfo = isDepressed;
-        },
-    )
-    dragButton9.yDrag = true;
-    dragButton9.UDarrows = true;
-    panel.buttonArray.push(dragButton9)
-
-
-    let dragButton10 = new PButton(panel, 0.9, 0.0, 0.1, 1, "p3",
-        function (dy, yDragVar0) {
-            hg.p3 = Math.min(10, Math.max((- 0.0005 / pixRat * dy) + yDragVar0, -10))
-
-        }, [], [],
-        function () {
-            return hg.p3;
-        },
-        function (isDepressed) {
-            showRadInfo = isDepressed;
-        },
-    )
-    dragButton10.yDrag = true;
-    dragButton10.UDarrows = true;
-    panel.buttonArray.push(dragButton10)
-
-
-    // let hueButton = new PButton(panel, 0.6, 0, 0.2, 1, "Hue",
-    //     function (dy, yDragVar0) {
-
-    //         pair.move(pair.th);
-    //         pair.penUpCont();
-
-    //         pair.hue = yDragVar0 - 0.5 / pixRat * dy;
-    //         if (pair.hue > 360) {
-    //             pair.hue -= 360;
-    //         }
-    //         if (pair.hue < 0) {
-    //             pair.hue += 360;
-    //         }
-    //         // console.log(dy, yDragVar0, dx, xdragVar0)
-    //         // pair.lightness = Math.max(00, Math.min(100, xdragVar0 + dx * 0.25/pixRat));
-
-    //         pair.setColor();
-    //         pair.fixed.color = pair.color;
-    //         pair.moving.color = pair.color;
-    //         document.querySelector(':root').style.setProperty('--fgColor', pair.color)
-    //         pair.move(pair.th);
-    //         pair.penDown();
-
-    //     }, [], [],
-    //     function () {
-    //         return pair.hue;
-    //     },
-    //     function (isDepressed) {
-    //         showColInfo = isDepressed;
-    //     }
-    // )
-    // hueButton.yDrag = true;
-    // // colButton.xDrag = true;
-    // hueButton.UDarrows = true;
-    // // colButton.LRarrows = true;
-    // panel.buttonArray.push(hueButton)
-
-    // let lightnessButton = new PButton(panel, 0.8, 0, 0.2, 1, "Lightness",
-    //     function (dy, yDragVar0) {
-
-    //         pair.move(pair.th);
-    //         pair.penUpCont();
-
-    //         // pair.hue = yDragVar0 - 0.5/pixRat * dy;
-    //         // if (pair.hue > 360) {
-    //         //     pair.hue -= 360;
-    //         // }
-    //         // if (pair.hue < 0) {
-    //         //     pair.hue += 360;
-    //         // }
-    //         // console.log(dy, yDragVar0, dx, xdragVar0)
-
-    //         pair.lightness = Math.max(00, Math.min(100, yDragVar0 + dy * -0.25 / pixRat));
-
-    //         pair.setColor();
-    //         pair.fixed.color = pair.color;
-    //         pair.moving.color = pair.color;
-    //         document.querySelector(':root').style.setProperty('--fgColor', pair.color)
-    //         pair.move(pair.th);
-    //         pair.penDown();
-
-    //     }, [], [],
-    //     function () {
-    //         return pair.lightness;
-    //     },
-    //     function (isDepressed) {
-    //         showColInfo = isDepressed;
-    //     }
-    // )
-    // lightnessButton.yDrag = true;
-    // // colButton.xDrag = true;
-    // lightnessButton.UDarrows = true;
-    // // colButton.LRarrows = true;
-    // panel.buttonArray.push(lightnessButton)
-
-
-
-    return panel;
-}
-
-function createOscPanel(osc, oscTxt, xPos, yPos) {
-    w = Math.min(X / 2, maxPanelWidth * 5);
-    h = uiY;
-    let panel = new Panel(xPos, yPos, w, h, oscTxt);
-    panel.anyClickActivates = true;
-
-    let button = new OscPButton(panel, 0, 0, 0.20, 1, 'amp',
-        function (dy, yDragVar0) {
-            osc.a = (Math.min(2, Math.max((-0.005 / pixRat * dy) + yDragVar0, 0)))
-        },
-        null, null,
-        function () {
-            return osc.a;
-        },
-        function (isDepressed) {
-            showRadInfo = isDepressed;
-        }, null, reset = 1.0000,
-        function (a) {
-            osc.a = a;
-        })
-
-    button.yDrag = true;
-    button.UDarrows = true;
-    panel.buttonArray.push(button);
-
-    button = new OscPButton(panel, .2, 0, 0.20, 1, 'freq',
-        function (dy, yDragVar0) {
-            osc.f = Math.round(Math.min(10, Math.max((-0.05 / pixRat * dy) + yDragVar0, -10)))
-        },
-        null, null,
-        function () {
-            return osc.f;
-        },
-        function (isDepressed) {
-            showRadInfo = isDepressed;
-        }, null, reset = 1.0000,
-        function (a) {
-            osc.f = a;
-        })
-
-    button.yDrag = true;
-    button.UDarrows = true;
-    panel.buttonArray.push(button);
-
-    button = new OscPButton(panel, .4, 0, 0.20, 1, 'detune',
-        function (dy, yDragVar0) {
-            osc.df = Math.min(1, Math.max((-0.00005 / pixRat * dy) + yDragVar0, -1))
-        },
-        null, null,
-        function () {
-            return osc.df;
-        },
-        null, null, reset = 0.0001,
-        function (a) {
-            osc.df = a;
-        })
-
-    button.yDrag = true;
-    button.UDarrows = true;
-    panel.buttonArray.push(button);
-
-    button = new OscPButton(panel, .6, 0, 0.2, 1, 'phase',
-        function (dy, yDragVar0) {
-            osc.p = (Math.min(10, Math.max((-0.002 / pixRat * dy) + yDragVar0, -10)))
-        },
-        null, null,
-        function () {
-            return osc.p;
-        },
-        function (isDepressed) {
-            showRadInfo = isDepressed;
-        }, null, reset = 0.000001,
-        function (a) {
-            osc.p = a;
-        },
-        function () {
-            return osc.autop;
-        },
-        function () {
-            osc.toggleAuto();
-        }
-    )
-
-    button.yDrag = true;
-    button.UDarrows = true;
-    panel.buttonArray.push(button);
-
-    button = new OscPButton(panel, .8, 0, 0.2, 1, 'decay',
-        function (dy, yDragVar0) {
-            osc.d = (Math.min(1, Math.max(((1 - 0.01 / pixRat * dy)) * yDragVar0, 0.0001)))
-        },
-        null, null,
-        function () {
-            return osc.d;
-        },
-        function (isDepressed) {
-            showRadInfo = isDepressed;
-        }, null, reset = 0.01,
-        function (a) {
-            osc.d = a;
-        })
-
-    button.yDrag = true;
-    button.UDarrows = true;
-    panel.buttonArray.push(button);
-
-    return panel;
-}
-function createTimePanel(txt, xPos, yPos) {
-    w = Math.min(X * 0.5 * 3 / 5, maxPanelWidth * 3);
-    let panel = new Panel(xPos, yPos, w, uiY, txt);
-    panel.anyClickActivates = true;
-
-    let button = new PButton(panel, 0.0, 0.0, 0.333, 1, "t0",
-        function (dy, yDragVar0) {
-            hg.t0 = Math.min(10, Math.max((- 0.01 / pixRat * dy) + yDragVar0, -10))
-        }, [], [],
-        function () {
-            return hg.t0;
-        },
-        function (isDepressed) {
-            showRadInfo = isDepressed;
-        },
-    )
-    button.yDrag = true;
-    button.UDarrows = true;
-    panel.buttonArray.push(button)
-
-    button = new PButton(panel, 0.333, 0.0, 0.333, 1, "t",
-        function (dy, yDragVar0) {
-            hg.t1 = Math.min(1000, Math.max((1 - 0.01 / pixRat * dy) * yDragVar0, 1))
-
-        }, [], [],
-        function () {
-            return hg.t1;
-        },
-        function (isDepressed) {
-            showRadInfo = isDepressed;
-        },
-    )
-    button.yDrag = true;
-    button.UDarrows = true;
-    panel.buttonArray.push(button)
-
-    button = new PButton(panel, 0.666, 0.0, 0.333, 1, "dt",
-        function (dy, yDragVar0) {
-            // hg.dt = Math.min(1, Math.max((1 - 0.01 / pixRat * dy) * yDragVar0, 0.001))
-            hg.dt = Math.min(3, Math.max(-0.01 / pixRat * dy + yDragVar0, 0.01))
-        }, [], [],
-        function () {
-            return hg.dt;
-        },
-        function (isDepressed) {
-            showRadInfo = isDepressed;
-        },
-    )
-    button.yDrag = true;
-    button.UDarrows = true;
-    panel.buttonArray.push(button)
-
-
-
-    return panel
-}
-
 function submitToGallery() {
     let name = document.getElementById('name').value;
     localStorage.setItem('name', name);
@@ -1161,7 +574,7 @@ function anim() {
     if (hg.auto) { requestAnimationFrame(anim); }
 }
 class Harmonograph {
-    constructor(oscX, oscY, oscXrot, oscYrot) {
+    constructor(oscX, oscY, oscXrot, oscYrot,oscHue) {
         this.hue = hueInit;
         this.saturation = 100;
         this.lightness = 65;
@@ -1173,14 +586,16 @@ class Harmonograph {
         this.oscY = oscY;
         this.oscXrot = oscXrot;
         this.oscYrot = oscYrot;
+        this.oscHue= oscHue;
 
-        this.t0 = -.0;
+        this.t0 = 0.0;
         this.t1 = 100;
-        this.dt = .05;
+        this.dt = 0.05;
 
         this.auto = false;
 
         this.softStart = 10;
+        // this.softStart = 0;
 
         this.points = [];
         this.calc();
@@ -1206,7 +621,7 @@ class Harmonograph {
     }
 
     checkAuto() {
-        if (!(oscX.autop || oscY.autop || oscXrot.autop || oscYrot.autop)) {
+        if (!(oscX.autop || oscY.autop || oscXrot.autop || oscYrot.autop || this.oscHue.autop)) {
             this.auto = false;
         }
         else if (!this.auto) {
@@ -1238,47 +653,55 @@ class Harmonograph {
         this.oscY.update();
         this.oscXrot.update();
         this.oscYrot.update();
+        this.oscHue.update();
 
         this.oscX.phaseBound();
         this.oscY.phaseBound();
         this.oscXrot.phaseBound();
         this.oscYrot.phaseBound();
+        this.oscHue.phaseBound();
         this.points = [];
-        // let n = (this.t1 - this.t0) / this.dt;
-        // console.log('Calc n:',n)
         for (let t = this.t0; t < this.t1; t += this.dt) {
+
             this.points.push(new Point(
                 this.oscX.val(t) + this.oscXrot.val(t),
-                this.oscY.val(t) + this.oscYrot.val(t)))
+                this.oscY.val(t) + this.oscYrot.val(t),
+                this.hue+oscHue.valNoBaseAmp(t)))
         }
     }
     draw(ctx) {
-
+        var x0 = this.points[0].x;
+        let y0 = this.points[0].y;
+        let alpha = 1;
         if (this.points.length > 1) {
             ctx.lineWidth = baseLW * 1;
             ctx.beginPath()
-            ctx.moveTo(this.points[0].x, this.points[0].y);
+            ctx.moveTo(x0, y0);
             let n = 0;
-            let alpha = 0;
             if (this.softStart) {
-                // console.log("soft")
-
+                alpha=0;
                 this.points.slice(0, this.softStart).forEach(point => {
                     n++;
                     alpha = (n / this.softStart) ** 2;
-                    ctx.strokeStyle = "hsla(" + this.hue + "," + this.saturation + "%," + this.lightness + "%," + alpha + ")"
-                    // console.log(n)
+                    ctx.strokeStyle = "hsla(" + point.hue + "," + this.saturation + "%," + this.lightness + "%," + alpha + ")"
                     ctx.lineTo(point.x, point.y);
                     ctx.stroke();
                     ctx.beginPath();
                     ctx.moveTo(point.x, point.y);
+                    x0 = point.x;
+                    y0 = point.y;
                 });
 
                 ctx.strokeStyle = this.color;
                 this.points.slice(this.softStart - 1, -this.softStart).forEach(point => {
+                    ctx.beginPath()
+                    ctx.moveTo(x0, y0)
+                    ctx.strokeStyle = "hsla(" + point.hue + "," + this.saturation + "%," + this.lightness + "%," + alpha + ")"
                     ctx.lineTo(point.x, point.y);
+                    x0 = point.x;
+                    y0 = point.y;
+                    ctx.stroke();
                 })
-                ctx.stroke();
 
                 n = this.softStart;
                 ctx.beginPath();
@@ -1287,22 +710,26 @@ class Harmonograph {
                     n--;
                     // console.log(n)
                     alpha = (n / this.softStart) ** 2;
-                    ctx.strokeStyle = "hsla(" + this.hue + "," + this.saturation + "%," + this.lightness + "%," + alpha + ")"
                     ctx.lineTo(point.x, point.y);
 
                     ctx.stroke();
                     ctx.beginPath();
+                    ctx.strokeStyle = "hsla(" + point.hue + "," + this.saturation + "%," + this.lightness + "%," + alpha + ")"
                     ctx.moveTo(point.x, point.y);
                 })
 
             }
             else {
-                // console.log("hard")
-                ctx.strokeStyle = this.color;
                 this.points.forEach(point => {
+                    ctx.beginPath()
+                    ctx.moveTo(x0, y0)
+                    ctx.strokeStyle = "hsla(" + point.hue + "," + this.saturation + "%," + this.lightness + "%," + alpha + ")"
                     ctx.lineTo(point.x, point.y);
+                    x0 = point.x;
+                    y0 = point.y;
+                    ctx.stroke();
                 })
-                ctx.stroke();
+
             }
 
         }
@@ -1349,7 +776,6 @@ const uiBorder = 5;
 
 canvas.style.backgroundColor = bgFillStyle
 
-
 const galleryLW = 1;
 const gallerySize = 1080;
 
@@ -1360,71 +786,663 @@ var prevDiff = 0;
 var curDiff = 0;
 var dDiff = 0;
 
-
-
 // ui size
 let uiY = 0.25 * Y;
 let uiX = X;
 
-const maxPanelWidth = 100;
-let nOscButtons = 18
+const maxPanelWidth = Math.min(X/11,100);
+
+let nOscButtons = 16
 if (X > maxPanelWidth * nOscButtons) {
-    oXx = 0;
+    oLx = maxPanelWidth * 0;
+    oLy = Y - uiY;
+    oXx = maxPanelWidth * 2;
     oXy = Y - uiY;
     oYx = maxPanelWidth * 5;
     oYy = Y - uiY;
-    oRx = maxPanelWidth * 10;
+    oRx = maxPanelWidth * 8;
     oRy = Y - uiY;
-    oTx = maxPanelWidth * 15;
+    oTx = maxPanelWidth * 13;
     oTy = Y - uiY;
+    oCx = maxPanelWidth * 1;
+    oCy = 0;
     // initial screen centre
     xOff = X / 2;
-    yOff = (Y-uiY) / 2;
+    yOff = (Y - uiY) / 2;
     baseAmp = 0.25 * Math.min(X, Y)
 } else {
-    oXx = 0
+    oLx = maxPanelWidth * 0;
+    oLy = Y - uiY;
+    oXx = maxPanelWidth * 2;
     oXy = Y - uiY
-    oYx = X * .5
+    oYx = maxPanelWidth * 5;
     oYy = Y - uiY
-    oRx = X * .15
+    oRx = maxPanelWidth * 1;
     oRy = 0
-    oTx = X * 0.7;
-    oTy = 0;
+    oTx = maxPanelWidth * 8;
+    oTy = Y - uiY
+    oCx = maxPanelWidth * 6;
+    oCy = 0;
     // initial screen centre
     xOff = X / 2;
     yOff = Y / 2;
-    baseAmp = 0.18 * Math.min(X, Y)
+    baseAmp = 0.25 * Math.min(X, Y)
 }
-
-// if (X > 1.4 * Y) {
-//     isLandscape = true
-//     uiY = 0.4 * Y;
-//     uiX = 0.333 * X;
-//     xOff = 2 * X / 3;
-// }
-// else {
-// isLandscape = false;
-// }
 
 oscX = new Oscillator(1.0, 2, 0.0, 0.01);
 oscY = new Oscillator(1.0, 1, 0.25, 0.001);
 oscXrot = new Oscillator(0.3, 1, 0, 0);
 oscYrot = new Oscillator(0.0, 1, 0.25, 0);
+oscHue = new Oscillator(20, 1, 0, 0);
 
 oscArray = [oscX, oscY, oscXrot, oscYrot];
 
-// oscDefaults = { 'a': 1.0, 'f': 1, 'd': 0.01, 'p': 0, 'df': 0 }
-// oscIncs = { 'a': 0.001, 'f': .001, 'd': 0.0001, 'p': 0.001, 'df': 0.0001 }
+let hg = new Harmonograph(oscX, oscY, oscXrot, oscYrot,oscHue)
 
-let hg = new Harmonograph(oscX, oscY, oscXrot, oscYrot)
 
-oscXpanel = createOscPanel(oscX, 'x', oXx, oXy)
-oscYpanel = createOscPanel(oscY, 'y', oYx, oYy)
+class PButton {
+    constructor(panel, x, y, w, h, txt, fun, argObj, getXdragVar,
+        getYdragVar, isDepressedFun, toggleValFun, showReset, resetFun, autoStateFun, autoTogFun, precision = 2) {
+        this.x = panel.x + x * panel.w;
+        this.y = panel.y + y * panel.h;
+        // this.yb=y;
+        this.w = w * panel.w;
+        this.h = h * panel.h;
+        this.hb = this.h;
+        this.txt = txt;
+        this.fun = fun; // click function
+        this.argObj = argObj; // arg object to pas to fun upon click
+        this.depressed = false; //
+        this.xDrag = false;
+        this.yDrag = false;
+        if (getYdragVar) {
+            this.yDrag = true;
+        }
+        this.toggleValFun = toggleValFun;
+        this.toggle = false;
+        if (toggleValFun) {
+            this.toggle = true;
+        }
+
+        this.y0;
+        this.x0;
+        this.xVar0;
+        this.yVar0;
+        this.getYdragVar = getYdragVar;
+        this.getXdragVar = getXdragVar;
+        this.isDepressedFun = isDepressedFun; //pass true to this fun while depressed
+        this.UDarrows = false;
+        this.LRarrows = false;
+
+        this.LRarrLen = this.w / 6;
+        this.isReset = reset;
+        this.buttons = [];
+        this.autoStateFun = autoStateFun;
+        this.autoTogFun = autoTogFun;
+        this.precision = precision;
+
+
+        if (showReset) {
+            let button = new PButton(this, 0, 0.6, 1, 0.2, 'reset', resetFun, null, null, null, null, null, 0)
+            this.buttons.push(button);
+        }
+        if (this.autoStateFun) {
+            let button = new PButton(this, 0, 0.4, 1, 0.2, 'auto', this.autoTogFun, null, null, null, null, this.autoStateFun, 0, null)
+            this.buttons.push(button);
+        }
+        this.hb = this.hb - (this.buttons.length + this.yDrag) * 0.2 * this.h;
+        this.UDarrLen = this.hb / 6;
+    }
+    draw() {
+        ctx.strokeStyle = hg.color;
+        ctx.beginPath();
+        ctx.rect(this.x, this.y, this.w, this.h);
+        ctx.stroke();
+        // if (this.txt=='reset'){
+        //     console.log(this.x,this.y)
+        // }
+
+        if (this.depressed) {
+            ctx.fillStyle = hg.color;
+            ctx.fillRect(this.x, this.y, this.w, this.hb)
+        }
+        if (this.toggle) {
+            // console.log(this.toggleValFun)
+            if (this.toggleValFun()) {
+                ctx.fillStyle = transCol;
+                ctx.fillRect(this.x, this.y, this.w, this.hb)
+            }
+        }
+        if (this.UDarrows) {
+            drawArrow(ctx,
+                this.x + this.w / 2, this.y + this.hb / 2 + txtSize / 4,
+                this.x + this.w / 2, this.y + this.hb / 2 + txtSize / 4 + this.UDarrLen,
+                baseLW, uiTextColor)
+            drawArrow(ctx,
+                this.x + this.w / 2, this.y + this.hb / 2 - txtSize / 4,
+                this.x + this.w / 2, this.y + this.hb / 2 - txtSize / 4 - this.UDarrLen,
+                baseLW, uiTextColor)
+        }
+        if (this.LRarrows) {
+            drawArrow(ctx,
+                this.x + this.w / 2 - txtSize / 2, this.y + this.hb / 2,
+                this.x + this.w / 2 - txtSize / 2 - this.LRarrLen, this.y + this.hb / 2,
+                baseLW, uiTextColor)
+            drawArrow(ctx,
+                this.x + this.w / 2 + txtSize / 2, this.y + this.hb / 2,
+                this.x + this.w / 2 + txtSize / 2 + this.LRarrLen, this.y + this.hb / 2,
+                baseLW, uiTextColor)
+        }
+        // console.log(this.buttons)
+        this.buttons.forEach(button => button.draw())
+
+        ctx.fillStyle = uiTextColor;
+        ctx.textAlign = "center";
+        ctx.font = txtSize / 4 + 'px sans-serif';
+        ctx.textBaseline = "middle";
+        ctx.lineWidth = baseLW;
+        ctx.fillText(this.txt, this.x + this.w / 2, this.y + this.hb / 2, this.w * 0.9);
+        // console.log(this.txt)
+        if (this.yDrag) {
+            // console.log(this.getYdragVar)
+            ctx.beginPath()
+            ctx.strokeStyle = hg.color;
+            ctx.rect(this.x, this.y + 0.8 * this.h, this.w, this.h * 0.2)
+            ctx.stroke()
+            ctx.fillText(this.getYdragVar().toFixed(this.precision), this.x + this.w / 2, this.y + this.h - txtSize / 4, this.w * 0.9);
+        }
+
+    }
+    contains(x, y) {
+        return (x > this.x & x < (this.x + this.w) &
+            y > this.y & y < (this.y + this.hb));
+    }
+    action() {
+        this.fun(this.argObj);
+    }
+    pointerDown(x, y) {
+        if (this.contains(x, y)) {
+            this.depressed = true;
+            this.x0 = x;
+            this.y0 = y;
+            if (this.yDrag) {
+                this.yVar0 = this.getYdragVar();
+                // console.log(this.isDepressedFun)
+                if (this.isDepressedFun) {
+                    this.isDepressedFun(true);
+                }
+            }
+            if (this.xDrag) {
+                this.xVar0 = this.getXdragVar();
+                this.isDepressedFun(true);
+            }
+        }
+        this.buttons.forEach(button => button.pointerDown(x, y));
+    }
+    pointerUp(x, y) {
+        if (!this.xDrag & !this.yDrag & this.depressed & this.contains(x, y)) {
+            // console.log('fun', this.fun, 'arg', this.argObj)
+            this.action();
+        }
+        this.depressed = false;
+        if (this.isDepressedFun) {
+            this.isDepressedFun(false);
+        }
+        this.buttons.forEach(button => button.pointerUp(x, y));
+    }
+    pointerMove(x, y) {
+        if (!this.contains(x, y) & !this.yDrag & !this.xDrag) {
+            this.depressed = false;
+        }
+        if (this.xDrag & this.yDrag & this.depressed) {
+            this.fun(y - this.y0, this.yVar0, x - this.x0, this.xVar0);
+        }
+        else if (this.yDrag & this.depressed) {
+            this.fun(y - this.y0, this.yVar0);
+        }
+        else if (this.xDrag & this.depressed) {
+            this.fun(x - this.x0, this.xVar0);
+        }
+    }
+}
+function createOscPanel(osc, oscTxt, xPos, yPos) {
+    w = Math.min(X / 2, maxPanelWidth * 5);
+    h = uiY;
+    let panel = new Panel(xPos, yPos, w, h, oscTxt);
+    panel.anyClickActivates = true;
+
+    let button = new PButton(panel, 0, 0, 0.20, 1, 'amp',
+        function (dy, yDragVar0) {
+            osc.a = (Math.min(2, Math.max((-0.005 / pixRat * dy) + yDragVar0, 0)))
+        },
+        null, null,
+        function () {
+            return osc.a;
+        },
+        function (isDepressed) {
+            showRadInfo = isDepressed;
+        }, null,
+        showReset = true,
+        resetFun = function () {
+            osc.a = 1.0;
+        }
+    )
+
+    button.yDrag = true;
+    button.UDarrows = true;
+    panel.buttonArray.push(button);
+
+    button = new PButton(panel, .2, 0, 0.20, 1, 'freq',
+        function (dy, yDragVar0) {
+            osc.f = Math.round(Math.min(10, Math.max((-0.05 / pixRat * dy) + yDragVar0, -10)))
+        },
+        null, null,
+        function () {
+            return osc.f;
+        },
+        function (isDepressed) {
+            showRadInfo = isDepressed;
+        }, null, showReset = true,
+        resetFun = function () {
+            osc.f = 1.0;
+        },
+        null, null, 0)
+
+    button.yDrag = true;
+    button.UDarrows = true;
+    panel.buttonArray.push(button);
+
+    button = new PButton(panel, .4, 0, 0.20, 1, 'detune',
+        function (dy, yDragVar0) {
+            osc.df = Math.min(1, Math.max((-0.00005 / pixRat * dy) + yDragVar0, -1))
+        },
+        null, null,
+        function () {
+            return osc.df;
+        },
+        null, null,
+        showReset = true,
+        resetFun = function () {
+            osc.df = 0.0;
+        })
+
+    button.yDrag = true;
+    button.UDarrows = true;
+    panel.buttonArray.push(button);
+
+    button = new PButton(panel, .6, 0, 0.2, 1, 'phase',
+        function (dy, yDragVar0) {
+            osc.p = (Math.min(10, Math.max((-0.002 / pixRat * dy) + yDragVar0, -10)))
+        },
+        null, null,
+        function () {
+            return osc.p;
+        },
+        function (isDepressed) {
+            showRadInfo = isDepressed;
+        }, null,
+        showReset = true,
+        resetFun = function () {
+            osc.p = 0.0;
+        },
+        function () {
+            return osc.autop;
+        },
+        function () {
+            osc.toggleAuto();
+        }
+    )
+
+    button.yDrag = true;
+    button.UDarrows = true;
+    panel.buttonArray.push(button);
+
+    button = new PButton(panel, .8, 0, 0.2, 1, 'decay',
+        function (dy, yDragVar0) {
+            osc.d = (Math.min(1, Math.max(((1 - 0.01 / pixRat * dy)) * yDragVar0, 0.0001)))
+        },
+        null, null,
+        function () {
+            return osc.d;
+        },
+        function (isDepressed) {
+            showRadInfo = isDepressed;
+        }, null, showReset = true,
+        resetFun = function () {
+            osc.d = 0.01;
+        })
+
+    button.yDrag = true;
+    button.UDarrows = true;
+    panel.buttonArray.push(button);
+
+    return panel;
+}
+function createLinkOscPanel(osc, oscTxt, xPos, yPos) {
+    w = Math.min(X / 2, maxPanelWidth * 2);
+    h = uiY;
+    let panel = new Panel(xPos, yPos, w, h, oscTxt);
+    panel.anyClickActivates = true;
+
+    let button = new PButton(panel, 0, 0, 0.5, 1, 'amp',
+        function (dy, yDragVar0) {
+            osc.a = (Math.min(2, Math.max((-0.005 / pixRat * dy) + yDragVar0, 0)))
+        },
+        null, null,
+        function () {
+            return osc.a;
+        },
+        function (isDepressed) {
+            showRadInfo = isDepressed;
+        }, null,
+        reset = true,
+        resetFun = function (a) {
+            osc.a = 1.0;
+        },
+    )
+
+    button.yDrag = true;
+    button.UDarrows = true;
+    panel.buttonArray.push(button);
+
+
+    button.yDrag = true;
+    button.UDarrows = true;
+    panel.buttonArray.push(button);
+
+    button = new PButton(panel, .5, 0, 0.5, 1, 'decay',
+        function (dy, yDragVar0) {
+            osc.d = (Math.min(1, Math.max(((1 - 0.01 / pixRat * dy)) * yDragVar0, 0.0001)))
+        },
+        null, null,
+        function () {
+            return osc.d;
+        },
+        function (isDepressed) {
+            showRadInfo = isDepressed;
+        }, null,
+        reset = true,
+        resetFun = function (a) {
+            osc.d = 0.01;
+        },
+    )
+
+    button.yDrag = true;
+    button.UDarrows = true;
+    panel.buttonArray.push(button);
+
+    return panel;
+}
+function createRedOscPanel(osc, oscTxt, xPos, yPos) {
+    w = Math.min(X / 2, maxPanelWidth * 3);
+    h = uiY;
+    let panel = new Panel(xPos, yPos, w, h, oscTxt);
+    panel.anyClickActivates = true;
+
+    button = new PButton(panel, .0, 0, 0.333, 1, 'freq',
+        function (dy, yDragVar0) {
+            osc.f = Math.round(Math.min(10, Math.max((-0.05 / pixRat * dy) + yDragVar0, -10)))
+        },
+        null, null,
+        function () {
+            return osc.f;
+        },
+        function (isDepressed) {
+            showRadInfo = isDepressed;
+        },
+        null,
+        reset = true,
+        resetFun = function (a) {
+            osc.f = 1;
+        },
+        null, null, 0)
+
+    button.yDrag = true;
+    button.UDarrows = true;
+    panel.buttonArray.push(button);
+
+    button = new PButton(panel, .333, 0, 0.333, 1, 'detune',
+        function (dy, yDragVar0) {
+            osc.df = Math.min(1, Math.max((-0.00005 / pixRat * dy) + yDragVar0, -1))
+        },
+        null, null,
+        function () {
+            return osc.df;
+        },
+        null, null,
+        reset = true,
+        resetFun = function (a) {
+            osc.df = 0.0;
+        },
+    )
+
+    button.yDrag = true;
+    button.UDarrows = true;
+    panel.buttonArray.push(button);
+
+    button = new PButton(panel, .666, 0, 0.333, 1, 'phase',
+        function (dy, yDragVar0) {
+            osc.p = (Math.min(10, Math.max((-0.002 / pixRat * dy) + yDragVar0, -10)))
+        },
+        null, null,
+        function () {
+            return osc.p;
+        },
+        function (isDepressed) {
+            showRadInfo = isDepressed;
+        }, null,
+        reset = true,
+        resetFun = function (a) {
+            osc.p = 0.0;
+        },
+        function () {
+            return osc.autop;
+        },
+        function () {
+            osc.toggleAuto();
+        }
+    )
+
+    button.yDrag = true;
+    button.UDarrows = true;
+    panel.buttonArray.push(button);
+
+
+    return panel;
+}
+function createTimePanel(txt, xPos, yPos) {
+    w = Math.min(X * 0.5 * 3 / 5, maxPanelWidth * 3);
+    let panel = new Panel(xPos, yPos, w, uiY, txt);
+    panel.anyClickActivates = true;
+
+    let button = new PButton(panel, 0.0, 0.0, 0.333, 1, "t0",
+        function (dy, yDragVar0) {
+            hg.t0 = Math.min(10, Math.max((- 0.01 / pixRat * dy) + yDragVar0, -10))
+        },
+        null, null,
+        function () {
+            return hg.t0;
+        },
+        function (isDepressed) {
+            showRadInfo = isDepressed;
+        },
+        null,
+        showReset = true,
+        resetFun = function () {
+            hg.t0 = 0;
+        },
+        null, null, 2
+    )
+    button.yDrag = true;
+    button.UDarrows = true;
+    panel.buttonArray.push(button)
+
+    button = new PButton(panel, 0.333, 0.0, 0.333, 1, "t",
+        function (dy, yDragVar0) {
+            hg.t1 = Math.min(1000, Math.max((1 - 0.01 / pixRat * dy) * yDragVar0, 1))
+
+        }, null, null,
+        function () {
+            return hg.t1;
+        },
+        function (isDepressed) {
+            showRadInfo = isDepressed;
+        }, null, showReset = true,
+        resetFun = function () {
+            hg.t1 = 100;
+        }, null, null, 0
+    )
+    button.yDrag = true;
+    button.UDarrows = true;
+    panel.buttonArray.push(button)
+
+    button = new PButton(panel, 0.666, 0.0, 0.333, 1, "dt",
+        function (dy, yDragVar0) {
+            // hg.dt = Math.min(1, Math.max((1 - 0.01 / pixRat * dy) * yDragVar0, 0.001))
+            hg.dt = Math.min(3, Math.max(-0.005 / pixRat * dy + yDragVar0, 0.01))
+        }, null, null,
+        function () {
+            return hg.dt;
+        },
+        function (isDepressed) {
+            showRadInfo = isDepressed;
+        }, null, showReset = true,
+        resetFun = function () {
+            hg.dt = 0.05;
+        }, null, null, 2
+    )
+    button.yDrag = true;
+    button.UDarrows = true;
+    panel.buttonArray.push(button)
+
+
+    return panel
+}
+function createColPanel(osc, oscTxt, xPos, yPos) {
+    w = Math.min(X / 2, maxPanelWidth * 5);
+    h = uiY;
+    let panel = new Panel(xPos, yPos, w, h, oscTxt);
+    panel.anyClickActivates = true;
+
+    let button = new PButton(panel, 0, 0, 0.20, 1, 'amp',
+        function (dy, yDragVar0) {
+            osc.a = (Math.min(360, Math.max((-0.5 / pixRat * dy) + yDragVar0, 0)))
+        },
+        null, null,
+        function () {
+            return osc.a;
+        },
+        function (isDepressed) {
+            showRadInfo = isDepressed;
+        }, null,
+        showReset = true,
+        resetFun = function () {
+            osc.a = 20;
+        }
+    )
+
+    button.yDrag = true;
+    button.UDarrows = true;
+    panel.buttonArray.push(button);
+
+    button = new PButton(panel, .2, 0, 0.20, 1, 'freq',
+        function (dy, yDragVar0) {
+            osc.f = Math.round(Math.min(10, Math.max((-0.05 / pixRat * dy) + yDragVar0, -10)))
+        },
+        null, null,
+        function () {
+            return osc.f;
+        },
+        function (isDepressed) {
+            showRadInfo = isDepressed;
+        }, null, showReset = true,
+        resetFun = function () {
+            osc.f = 1.0;
+        },
+        null, null, 0)
+
+    button.yDrag = true;
+    button.UDarrows = true;
+    panel.buttonArray.push(button);
+
+    button = new PButton(panel, .4, 0, 0.20, 1, 'detune',
+        function (dy, yDragVar0) {
+            osc.df = Math.min(1, Math.max((-0.0001 / pixRat * dy) + yDragVar0, -1))
+        },
+        null, null,
+        function () {
+            return osc.df;
+        },
+        null, null,
+        showReset = true,
+        resetFun = function () {
+            osc.df = 0.0;
+        })
+
+    button.yDrag = true;
+    button.UDarrows = true;
+    panel.buttonArray.push(button);
+
+    button = new PButton(panel, .6, 0, 0.2, 1, 'phase',
+        function (dy, yDragVar0) {
+            osc.p = (Math.min(10, Math.max((-0.002 / pixRat * dy) + yDragVar0, -10)))
+        },
+        null, null,
+        function () {
+            return osc.p;
+        },
+        function (isDepressed) {
+            showRadInfo = isDepressed;
+        }, null,
+        showReset = true,
+        resetFun = function () {
+            osc.p = 0.0;
+        },
+        function () {
+            return osc.autop;
+        },
+        function () {
+            osc.toggleAuto();
+        }
+    )
+
+    button.yDrag = true;
+    button.UDarrows = true;
+    panel.buttonArray.push(button);
+
+    button = new PButton(panel, .8, 0, 0.2, 1, 'centre',
+        function (dy, yDragVar0) {
+            osc.z = (Math.min(360, Math.max(((0.1 / pixRat * dy)) + yDragVar0, -360)))
+        },
+        null, null,
+        function () {
+            return osc.z;
+        },
+        function (isDepressed) {
+            showRadInfo = isDepressed;
+        }, null, showReset = true,
+        resetFun = function () {
+            osc.z = 0.00;
+        })
+
+    button.yDrag = true;
+    button.UDarrows = true;
+    panel.buttonArray.push(button);
+
+    return panel;  
+}
+
+
+oscLpanel = createLinkOscPanel(oscX, 'lat', oLx, oLy)
+oscXpanel = createRedOscPanel(oscX, 'x', oXx, oXy)
+oscYpanel = createRedOscPanel(oscY, 'y', oYx, oYy)
 oscRpanel = createOscPanel(oscXrot, 'rotary', oRx, oRy)
 timePanel = createTimePanel('time', oTx, oTy);
+colPanel = createColPanel(oscHue,'hue',oCx,oCy);
+
 topPanel = createTopPanel();
 sharePanel = createSharePanel();
-panelArray = [topPanel, oscXpanel, oscYpanel, oscRpanel, timePanel, sharePanel];
+panelArray = [topPanel,colPanel, oscLpanel, oscXpanel, oscYpanel, oscRpanel, timePanel, sharePanel];
 // wakeGalleryServer()
 setGallerySubmitHTML();
 addPointerListeners();
