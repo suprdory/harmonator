@@ -1143,11 +1143,6 @@ function createLinkOscPanel(osc, oscTxt, xPos, yPos) {
     button.UDarrows = true;
     panel.buttonArray.push(button);
 
-
-    button.yDrag = true;
-    button.UDarrows = true;
-    panel.buttonArray.push(button);
-
     button = new PButton(panel, .5, 0, 0.5, 1, 'decay',
         function (dy, yDragVar0) {
             osc.d = (Math.min(1, Math.max(((1 - 0.01 / pixRat * dy)) * yDragVar0, 0.0001)))
