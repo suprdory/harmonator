@@ -62,7 +62,7 @@ let imageWidth = Math.min(window.innerWidth, 1080)
 document.querySelector(':root').style.setProperty('--nameSize', 10 + 'pt')
 document.querySelector(':root').style.setProperty('--commentSize', 10 + 'pt')
 
-for (let i = 0; i < 5; i++) {
+for (let i = 0; i < 10; i++) {
     add_image(i);
 }
 
