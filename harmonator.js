@@ -26,6 +26,14 @@ class Oscillator {
             this.p = this.p + 1
         }
     }
+    zBound() {
+        if (this.z > 360) {
+            this.z = this.z - 360;
+        }
+        else if (this.z < 0) {
+            this.z = this.z + 360
+        }
+    }
     update() {
         if (this.autop) {
             this.p = this.p + 0.001;
@@ -212,16 +220,19 @@ function pointerDownHandler(xc, yc, n = 1) {
     y = yc * pixRat;
 
     if (!showgalleryForm) {
-        panelArray.forEach(panel => panel.pointerDown(x, y))
+       
 
 
         let now = new Date().getTime();
         let timeSince = now - lastTouch;
         if (timeSince < 300 & n < 2) {
             //double touch
-            panelArray.forEach(panel => panel.pointerDoubleClick(x, y))
-            doubleClickHandler(clickCase);
+            doubleClickHandler(x,y);
         }
+        else{
+            panelArray.forEach(panel => panel.pointerDown(x, y))
+        }
+
         lastTouch = now;
 
     }
@@ -291,8 +302,8 @@ function pointerUpHandler(xc, yc) {
     panelArray.forEach(panel => panel.pointerUp(x, y))
     if (!hg.auto) { requestAnimationFrame(anim); }
 }
-function doubleClickHandler(clickCase) {
-
+function doubleClickHandler(x,y) {
+    panelArray.forEach(panel => panel.pointerDoubleClick(x, y))
     topPanel.active = true;
     timePanel.active = true;
     oscXpanel.active = true;
@@ -655,6 +666,8 @@ class Harmonograph {
         this.oscXrot.phaseBound();
         this.oscYrot.phaseBound();
         this.oscHue.phaseBound();
+        this.oscHue.zBound();
+
         this.points = [];
         for (let t = this.t0; t < this.t1; t += this.dt) {
 
@@ -827,9 +840,9 @@ if (X > maxPanelWidth * nOscButtons) {
 }
 
 oscX = new Oscillator(1.0, 2, 0.0, 0.01);
-oscY = new Oscillator(1.0, 1, 0.25, 0.001);
-oscXrot = new Oscillator(0.3, 1, 0, 0);
-oscYrot = new Oscillator(0.0, 1, 0.25, 0);
+oscY = new Oscillator(1.0, 1, 0.25, 0.01);
+oscXrot = new Oscillator(0.3, 1, 0, 0.001);
+oscYrot = new Oscillator(0.0, 1, 0.25, 0.001);
 oscHue = new Oscillator(20, 1, 0, 0);
 
 oscArray = [oscX, oscY, oscXrot, oscYrot];
@@ -933,18 +946,16 @@ class PButton {
 
         ctx.fillStyle = uiTextColor;
         ctx.textAlign = "center";
-        ctx.font = txtSize / 4 + 'px sans-serif';
         ctx.textBaseline = "middle";
+        ctx.font = txtSize / 4 + 'px sans-serif';
         ctx.lineWidth = baseLW;
-        ctx.fillText(this.txt, this.x + this.w / 2, this.y + this.hb / 2, this.w * 0.9);
-        // console.log(this.txt)
+        ctx.fillText(this.txt, this.x + this.w / 2, this.y + this.hb / 2, this.w * 0.85);
         if (this.yDrag) {
-            // console.log(this.getYdragVar)
             ctx.beginPath()
             ctx.strokeStyle = hg.color;
             ctx.rect(this.x, this.y + 0.8 * this.h, this.w, this.h * 0.2)
             ctx.stroke()
-            ctx.fillText(this.getYdragVar().toFixed(this.precision), this.x + this.w / 2, this.y + this.h - txtSize / 4, this.w * 0.9);
+            ctx.fillText(this.getYdragVar().toFixed(this.precision), this.x + this.w / 2, this.y +this.h*0.9, this.w * 0.9);
         }
 
     }
@@ -1050,7 +1061,7 @@ function createOscPanel(osc, oscTxt, xPos, yPos) {
     button.UDarrows = true;
     panel.buttonArray.push(button);
 
-    button = new PButton(panel, .4, 0, 0.20, 1, 'detune',
+    button = new PButton(panel, .4, 0, 0.20, 1, 'fine',
         function (dy, yDragVar0) {
             osc.df = Math.min(1, Math.max((-0.00005 / pixRat * dy) + yDragVar0, -1))
         },
@@ -1194,7 +1205,7 @@ function createRedOscPanel(osc, oscTxt, xPos, yPos) {
     button.UDarrows = true;
     panel.buttonArray.push(button);
 
-    button = new PButton(panel, .333, 0, 0.333, 1, 'detune',
+    button = new PButton(panel, .333, 0, 0.333, 1, 'fine',
         function (dy, yDragVar0) {
             osc.df = Math.min(1, Math.max((-0.00005 / pixRat * dy) + yDragVar0, -1))
         },
@@ -1248,7 +1259,7 @@ function createTimePanel(txt, xPos, yPos) {
     let panel = new Panel(xPos, yPos, w, uiY, txt);
     panel.anyClickActivates = true;
 
-    let button = new PButton(panel, 0.0, 0.0, 0.333, 1, "t0",
+    let button = new PButton(panel, 0.0, 0.0, 0.333, 1, "t"+ String.fromCharCode("0".charCodeAt(0)+8272),
         function (dy, yDragVar0) {
             hg.t0 = Math.min(10, Math.max((- 0.01 / pixRat * dy) + yDragVar0, -10))
         },
@@ -1292,7 +1303,7 @@ function createTimePanel(txt, xPos, yPos) {
     button = new PButton(panel, 0.666, 0.0, 0.333, 1, "dt",
         function (dy, yDragVar0) {
             // hg.dt = Math.min(1, Math.max((1 - 0.01 / pixRat * dy) * yDragVar0, 0.001))
-            hg.dt = Math.min(3, Math.max(-0.005 / pixRat * dy + yDragVar0, 0.01))
+            hg.dt = Math.min(3, Math.max(-0.001 / pixRat * dy + yDragVar0, 0.01))
         }, null, null,
         function () {
             return hg.dt;
@@ -1317,7 +1328,26 @@ function createColPanel(osc, oscTxt, xPos, yPos) {
     let panel = new Panel(xPos, yPos, w, h, oscTxt);
     panel.anyClickActivates = true;
 
-    let button = new PButton(panel, 0, 0, 0.20, 1, 'amp',
+
+    let button = new PButton(panel, .8, 0, 0.2, 1, 'off',
+        function (dy, yDragVar0) {
+            osc.z = (Math.min(3600, Math.max(((-1 / pixRat * dy)) + yDragVar0, -3600)))
+        },
+        null, null,
+        function () {
+            return osc.z;
+        },
+        function (isDepressed) {
+            showRadInfo = isDepressed;
+        }, null, showReset = true,
+        resetFun = function () {
+            osc.z = 0.00;
+        }, null, null, 0)
+    button.yDrag = true;
+    button.UDarrows = true;
+    panel.buttonArray.push(button);
+
+    button = new PButton(panel, 0.0, 0, 0.20, 1, 'amp',
         function (dy, yDragVar0) {
             osc.a = (Math.min(360, Math.max((-0.5 / pixRat * dy) + yDragVar0, 0)))
         },
@@ -1358,7 +1388,7 @@ function createColPanel(osc, oscTxt, xPos, yPos) {
     button.UDarrows = true;
     panel.buttonArray.push(button);
 
-    button = new PButton(panel, .4, 0, 0.20, 1, 'detune',
+    button = new PButton(panel, .4, 0, 0.20, 1, 'fine',
         function (dy, yDragVar0) {
             osc.df = Math.min(1, Math.max((-0.0002 / pixRat * dy) + yDragVar0, -1))
         },
@@ -1403,25 +1433,6 @@ function createColPanel(osc, oscTxt, xPos, yPos) {
     button.UDarrows = true;
     panel.buttonArray.push(button);
 
-    button = new PButton(panel, .8, 0, 0.2, 1, 'centre',
-        function (dy, yDragVar0) {
-            osc.z = (Math.min(360, Math.max(((1 / pixRat * dy)) + yDragVar0, -360)))
-        },
-        null, null,
-        function () {
-            return osc.z;
-        },
-        function (isDepressed) {
-            showRadInfo = isDepressed;
-        }, null, showReset = true,
-        resetFun = function () {
-            osc.z = 0.00;
-        },null,null,0)
-
-    button.yDrag = true;
-    button.UDarrows = true;
-    panel.buttonArray.push(button);
-
     return panel;  
 }
 
@@ -1430,8 +1441,8 @@ oscLpanel = createLinkOscPanel(oscX, 'lat', oLx, oLy)
 oscXpanel = createRedOscPanel(oscX, 'x', oXx, oXy)
 oscYpanel = createRedOscPanel(oscY, 'y', oYx, oYy)
 oscRpanel = createOscPanel(oscXrot, 'rotary', oRx, oRy)
-timePanel = createTimePanel('time', oTx, oTy);
 colPanel = createColPanel(oscHue,'hue',oCx,oCy);
+timePanel = createTimePanel('time', oTx, oTy);
 
 topPanel = createTopPanel();
 sharePanel = createSharePanel();
