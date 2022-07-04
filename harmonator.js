@@ -1013,7 +1013,7 @@ function createOscPanel(osc, oscTxt, xPos, yPos) {
 
     let button = new PButton(panel, 0, 0, 0.20, 1, 'amp',
         function (dy, yDragVar0) {
-            osc.a = (Math.min(2, Math.max((-0.005 / pixRat * dy) + yDragVar0, 0)))
+            osc.a = (Math.min(5, Math.max((-0.005 / pixRat * dy) + yDragVar0, 0)))
         },
         null, null,
         function () {
@@ -1126,7 +1126,7 @@ function createLinkOscPanel(osc, oscTxt, xPos, yPos) {
 
     let button = new PButton(panel, 0, 0, 0.5, 1, 'amp',
         function (dy, yDragVar0) {
-            osc.a = (Math.min(2, Math.max((-0.005 / pixRat * dy) + yDragVar0, 0)))
+            osc.a = (Math.min(5, Math.max((-0.005 / pixRat * dy) + yDragVar0, 0)))
         },
         null, null,
         function () {
@@ -1308,7 +1308,7 @@ function createTimePanel(txt, xPos, yPos) {
             showRadInfo = isDepressed;
         }, null, showReset = true,
         resetFun = function () {
-            hg.dt = 0.05;
+            hg.dt = 0.01;
         }, null, null, 2
     )
     button.yDrag = true;
@@ -1412,7 +1412,7 @@ function createColPanel(osc, oscTxt, xPos, yPos) {
 
     button = new PButton(panel, .8, 0, 0.2, 1, 'centre',
         function (dy, yDragVar0) {
-            osc.z = (Math.min(360, Math.max(((0.1 / pixRat * dy)) + yDragVar0, -360)))
+            osc.z = (Math.min(360, Math.max(((1 / pixRat * dy)) + yDragVar0, -360)))
         },
         null, null,
         function () {
@@ -1423,7 +1423,7 @@ function createColPanel(osc, oscTxt, xPos, yPos) {
         }, null, showReset = true,
         resetFun = function () {
             osc.z = 0.00;
-        })
+        },null,null,0)
 
     button.yDrag = true;
     button.UDarrows = true;
