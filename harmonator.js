@@ -107,14 +107,17 @@ class Panel {
             }
         }
     }
+    pointerDoubleClick(x, y) {
+        if (this.active) {
+            this.buttonArray.forEach(button => button.pointerDoubleClick(x, y))
+        }
+    }
     pointerDown(x, y) {
         if (this.active) {
             this.buttonArray.forEach(button => button.pointerDown(x, y))
         }
-        // if (this.anyClickActivates) {
-        //     this.active = true;
-        // }
     }
+
     pointerUp(x, y) {
         if (this.active) {
             this.buttonArray.forEach(button => button.pointerUp(x, y))
@@ -216,22 +219,11 @@ function pointerDownHandler(xc, yc, n = 1) {
         let timeSince = now - lastTouch;
         if (timeSince < 300 & n < 2) {
             //double touch
+            panelArray.forEach(panel => panel.pointerDoubleClick(x, y))
             doubleClickHandler(clickCase);
         }
         lastTouch = now;
 
-        // if (((y > .5 * Y & y < (Y - uiY)) & !isLandscape) ||
-        //     ((y > .5 * Y & y < Y & x > uiX) & isLandscape)) {
-        //     clickCase = "autoCW";
-        // }
-
-        // else if (((y < .5 * Y & y > (uiY)) & !isLandscape) ||
-        //     ((y < .5 * Y & y > 0 & x > uiX) & isLandscape)) {
-        //     clickCase = "autoCCW";
-        // }
-        // else {
-        //     clickCase = null;
-        // }
     }
 
     xt = (x - xOff) / (scl)
@@ -385,7 +377,9 @@ function shareImage() {
 }
 function uploadImage(name, comment) {
     if (hg.points.length > 0) {
+        console.log('wait')
         sharePanel.wait = true;
+        anim();
         canvasSq = drawSquareFullImage(gallerySize);
         canvasSq.toBlob(function (blob) {
             imgFile = new File(
@@ -411,6 +405,7 @@ function uploadImage(name, comment) {
                 .then(response => response.json())
                 .then(data => {
                     console.log(data);
+                    console.log('unwait')
                     sharePanel.wait = false;
                     anim()
                 })
@@ -427,7 +422,7 @@ function createSharePanel() {
     ysize = 400 * pixRat;
     let panel = new Panel((X - xsize) / 2, (Y - ysize) / 2, xsize, ysize);
     panel.overlay = true;
-    // panel.wait=true;
+    panel.wait=false;
     panel.active = false;
     panel.buttonArray.push(
         new PButton(panel, 0.0, 0, 1, 0.1, "Close",
@@ -770,6 +765,8 @@ const shareBorderfrac = 0.15;
 const hueInit = Math.random() * 360
 const bgFillStyle = "hsl(" + hueInit + ",100%,5%)";
 const bgFillStyleAlpha = "hsla(" + hueInit + ",100%,5%,.80)";
+const fgFillStyle = "hsl(" + hueInit + ",100%,5%)";
+const fgFillStyleAlpha = "hsla(" + hueInit + ",100%,50%,.50)";
 const transCol = "rgb(128,128,128,0.4)"
 const uiTextColor = "white"
 const uiBorder = 5;
@@ -875,19 +872,20 @@ class PButton {
         this.LRarrows = false;
 
         this.LRarrLen = this.w / 6;
-        this.isReset = reset;
+        this.isReset = showReset;
+        this.resetFun = resetFun;
         this.buttons = [];
         this.autoStateFun = autoStateFun;
         this.autoTogFun = autoTogFun;
         this.precision = precision;
 
 
-        if (showReset) {
-            let button = new PButton(this, 0, 0.6, 1, 0.2, 'reset', resetFun, null, null, null, null, null, 0)
-            this.buttons.push(button);
-        }
+        // if (showReset) {
+        //     let button = new PButton(this, 0, 0.6, 1, 0.2, 'reset', resetFun, null, null, null, null, null, 0)
+        //     this.buttons.push(button);
+        // }
         if (this.autoStateFun) {
-            let button = new PButton(this, 0, 0.4, 1, 0.2, 'auto', this.autoTogFun, null, null, null, null, this.autoStateFun, 0, null)
+            let button = new PButton(this, 0, 0.6, 1, 0.2, 'auto', this.autoTogFun, null, null, null, null, this.autoStateFun, 0, null)
             this.buttons.push(button);
         }
         this.hb = this.hb - (this.buttons.length + this.yDrag) * 0.2 * this.h;
@@ -898,9 +896,6 @@ class PButton {
         ctx.beginPath();
         ctx.rect(this.x, this.y, this.w, this.h);
         ctx.stroke();
-        // if (this.txt=='reset'){
-        //     console.log(this.x,this.y)
-        // }
 
         if (this.depressed) {
             ctx.fillStyle = hg.color;
@@ -909,7 +904,7 @@ class PButton {
         if (this.toggle) {
             // console.log(this.toggleValFun)
             if (this.toggleValFun()) {
-                ctx.fillStyle = transCol;
+                ctx.fillStyle = fgFillStyleAlpha;
                 ctx.fillRect(this.x, this.y, this.w, this.hb)
             }
         }
@@ -960,6 +955,11 @@ class PButton {
     action() {
         this.fun(this.argObj);
     }
+    pointerDoubleClick(x,y){
+        if (this.contains(x, y)){
+            this.resetFun();
+        }
+    }
     pointerDown(x, y) {
         if (this.contains(x, y)) {
             this.depressed = true;
@@ -967,7 +967,6 @@ class PButton {
             this.y0 = y;
             if (this.yDrag) {
                 this.yVar0 = this.getYdragVar();
-                // console.log(this.isDepressedFun)
                 if (this.isDepressedFun) {
                     this.isDepressedFun(true);
                 }
@@ -981,7 +980,6 @@ class PButton {
     }
     pointerUp(x, y) {
         if (!this.xDrag & !this.yDrag & this.depressed & this.contains(x, y)) {
-            // console.log('fun', this.fun, 'arg', this.argObj)
             this.action();
         }
         this.depressed = false;
@@ -1338,7 +1336,7 @@ function createColPanel(osc, oscTxt, xPos, yPos) {
         showReset = true,
         resetFun = function () {
             osc.a = 20;
-        }
+        },null,null,0
     )
 
     button.yDrag = true;
@@ -1367,7 +1365,7 @@ function createColPanel(osc, oscTxt, xPos, yPos) {
 
     button = new PButton(panel, .4, 0, 0.20, 1, 'detune',
         function (dy, yDragVar0) {
-            osc.df = Math.min(1, Math.max((-0.0001 / pixRat * dy) + yDragVar0, -1))
+            osc.df = Math.min(1, Math.max((-0.0002 / pixRat * dy) + yDragVar0, -1))
         },
         null, null,
         function () {
