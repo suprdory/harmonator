@@ -1449,7 +1449,7 @@ timePanel = createTimePanel('time', oTx, oTy);
 topPanel = createTopPanel();
 sharePanel = createSharePanel();
 panelArray = [topPanel,colPanel, oscLpanel, oscXpanel, oscYpanel, oscRpanel, timePanel, sharePanel];
-// wakeGalleryServer()
+wakeGalleryServer()
 setGallerySubmitHTML();
 addPointerListeners();
 anim();
