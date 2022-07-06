@@ -357,7 +357,8 @@ function drawSquareFullImage(n = 1080) {
     // canvasSh.style.backgroundColor=bgFillStyle
     // canvasSh.style.backgroundColor = bgFillStyle
     ctxSh.fillRect(0, 0, canvasSh.width, canvasSh.height);
-    ctxSh.setTransform(imscl, 0, 0, imscl, xoff, yoff)
+    ctxSh.setTransform(imscl, 0, 0, imscl, xoff, yoff);
+    // ctxSh.lineCap="round";
     hg.draw(ctxSh);
     baseLW = baseLWtemp;
     return (canvasSh)
@@ -683,6 +684,7 @@ class Harmonograph {
         let alpha = 1;
         if (this.points.length > 1) {
             ctx.lineWidth = baseLW * 1;
+            ctx.lineCap='butt';
             ctx.beginPath()
             ctx.moveTo(x0, y0);
             let n = 0;
@@ -699,7 +701,7 @@ class Harmonograph {
                     x0 = point.x;
                     y0 = point.y;
                 });
-
+                ctx.lineCap = 'round';
                 ctx.strokeStyle = this.color;
                 this.points.slice(this.softStart - 1, -this.softStart).forEach(point => {
                     ctx.beginPath()
@@ -710,7 +712,7 @@ class Harmonograph {
                     y0 = point.y;
                     ctx.stroke();
                 })
-
+                ctx.lineCap = 'butt';
                 n = this.softStart;
                 ctx.beginPath();
                 ctx.moveTo(this.points.slice(-this.softStart - 1)[0].x, this.points.slice(-this.softStart - 1)[0].y);
