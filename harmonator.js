@@ -359,7 +359,9 @@ function drawSquareFullImage(n = 1080) {
     ctxSh.fillRect(0, 0, canvasSh.width, canvasSh.height);
     ctxSh.setTransform(imscl, 0, 0, imscl, xoff, yoff);
     // ctxSh.lineCap="round";
+    hg.highQuality=True;
     hg.draw(ctxSh);
+    hg.highQuality = False;
     baseLW = baseLWtemp;
     return (canvasSh)
 }
@@ -588,6 +590,7 @@ class Harmonograph {
         this.locked = true;
         this.color = 0;
         this.setColor();
+        this.highQuality=false;
 
         this.oscX = oscX;
         this.oscY = oscY;
@@ -701,7 +704,8 @@ class Harmonograph {
                     x0 = point.x;
                     y0 = point.y;
                 });
-                ctx.lineCap = 'round';
+                if (this.highQuality){
+                ctx.lineCap = 'round';}
                 ctx.strokeStyle = this.color;
                 this.points.slice(this.softStart - 1, -this.softStart).forEach(point => {
                     ctx.beginPath()
@@ -841,8 +845,8 @@ if (X > maxPanelWidth * nOscButtons) {
     baseAmp = 0.25 * Math.min(X, Y)
 }
 
-oscX = new Oscillator(1.0, 2, 0.0, 0.01);
-oscY = new Oscillator(1.0, 1, 0.25, 0.01);
+oscX = new Oscillator(1.0, 1, 0.0, 0.01);
+oscY = new Oscillator(1.0, 2, 0.0, 0.01);
 oscXrot = new Oscillator(0.3, 1, 0, 0.001);
 oscYrot = new Oscillator(0.0, 1, 0.25, 0.001);
 oscHue = new Oscillator(20, 1, 0, 0);
