@@ -10,13 +10,13 @@ class Oscillator {
         this.p = p;
         this.d = d;
         this.autop = false;
-        this.z=0
+        this.z = 0
     }
     val(t) {
         return baseAmp * this.a * Math.sin((this.f + this.df) * t + this.p * 6.28318530718) * Math.exp(-this.d * t);
     }
     valNoBaseAmp(t) {
-        return this.z+this.a * Math.sin((this.f + this.df) * t + this.p * 6.28318530718) * Math.exp(-this.d * t);
+        return this.z + this.a * Math.sin((this.f + this.df) * t + this.p * 6.28318530718) * Math.exp(-this.d * t);
     }
     phaseBound() {
         if (this.p > 1) {
@@ -220,16 +220,16 @@ function pointerDownHandler(xc, yc, n = 1) {
     y = yc * pixRat;
 
     if (!showgalleryForm) {
-       
+
 
 
         let now = new Date().getTime();
         let timeSince = now - lastTouch;
         if (timeSince < 300 & n < 2) {
             //double touch
-            doubleClickHandler(x,y);
+            doubleClickHandler(x, y);
         }
-        else{
+        else {
             panelArray.forEach(panel => panel.pointerDown(x, y))
         }
 
@@ -302,15 +302,15 @@ function pointerUpHandler(xc, yc) {
     panelArray.forEach(panel => panel.pointerUp(x, y))
     if (!hg.auto) { requestAnimationFrame(anim); }
 }
-function doubleClickHandler(x,y) {
+function doubleClickHandler(x, y) {
     panelArray.forEach(panel => panel.pointerDoubleClick(x, y))
     topPanel.active = true;
     timePanel.active = true;
     oscXpanel.active = true;
     oscYpanel.active = true;
     oscRpanel.active = true;
-    colPanel.active=true;
-    oscLpanel.active=true;
+    colPanel.active = true;
+    oscLpanel.active = true;
 
 }
 function zoomHandler(dW, xc, yc) {
@@ -359,9 +359,9 @@ function drawSquareFullImage(n = 1080) {
     ctxSh.fillRect(0, 0, canvasSh.width, canvasSh.height);
     ctxSh.setTransform(imscl, 0, 0, imscl, xoff, yoff);
     // ctxSh.lineCap="round";
-    hg.highQuality=True;
+    hg.highQuality = true;
     hg.draw(ctxSh);
-    hg.highQuality = False;
+    hg.highQuality = false;
     baseLW = baseLWtemp;
     return (canvasSh)
 }
@@ -436,7 +436,7 @@ function createSharePanel() {
     ysize = 400 * pixRat;
     let panel = new Panel((X - xsize) / 2, (Y - ysize) / 2, xsize, ysize);
     panel.overlay = true;
-    panel.wait=false;
+    panel.wait = false;
     panel.active = false;
     panel.buttonArray.push(
         new PButton(panel, 0.0, 0, 1, 0.1, "Close",
@@ -583,20 +583,20 @@ function anim() {
     if (hg.auto) { requestAnimationFrame(anim); }
 }
 class Harmonograph {
-    constructor(oscX, oscY, oscXrot, oscYrot,oscHue) {
+    constructor(oscX, oscY, oscXrot, oscYrot, oscHue) {
         this.hue = hueInit;
         this.saturation = 100;
         this.lightness = 65;
         this.locked = true;
         this.color = 0;
         this.setColor();
-        this.highQuality=false;
+        this.highQuality = false;
 
         this.oscX = oscX;
         this.oscY = oscY;
         this.oscXrot = oscXrot;
         this.oscYrot = oscYrot;
-        this.oscHue= oscHue;
+        this.oscHue = oscHue;
 
         this.t0 = 0.0;
         this.t1 = 100;
@@ -678,7 +678,7 @@ class Harmonograph {
             this.points.push(new Point(
                 this.oscX.val(t) + this.oscXrot.val(t),
                 this.oscY.val(t) + this.oscYrot.val(t),
-                this.hue+oscHue.valNoBaseAmp(t)))
+                this.hue + oscHue.valNoBaseAmp(t)))
         }
     }
     draw(ctx) {
@@ -687,12 +687,12 @@ class Harmonograph {
         let alpha = 1;
         if (this.points.length > 1) {
             ctx.lineWidth = baseLW * 1;
-            ctx.lineCap='butt';
+            ctx.lineCap = 'butt';
             ctx.beginPath()
             ctx.moveTo(x0, y0);
             let n = 0;
             if (this.softStart) {
-                alpha=0;
+                alpha = 0;
                 this.points.slice(0, this.softStart).forEach(point => {
                     n++;
                     alpha = (n / this.softStart) ** 2;
@@ -704,8 +704,9 @@ class Harmonograph {
                     x0 = point.x;
                     y0 = point.y;
                 });
-                if (this.highQuality){
-                ctx.lineCap = 'round';}
+                if (this.highQuality) {
+                    ctx.lineCap = 'round';
+                }
                 ctx.strokeStyle = this.color;
                 this.points.slice(this.softStart - 1, -this.softStart).forEach(point => {
                     ctx.beginPath()
@@ -806,7 +807,7 @@ var dDiff = 0;
 let uiY = 0.25 * Y;
 let uiX = X;
 
-const maxPanelWidth = Math.min(X/11,100);
+const maxPanelWidth = Math.min(X / 11, 100);
 
 let nOscButtons = 16
 if (X > maxPanelWidth * nOscButtons) {
@@ -853,7 +854,7 @@ oscHue = new Oscillator(20, 1, 0, 0);
 
 oscArray = [oscX, oscY, oscXrot, oscYrot];
 
-let hg = new Harmonograph(oscX, oscY, oscXrot, oscYrot,oscHue)
+let hg = new Harmonograph(oscX, oscY, oscXrot, oscYrot, oscHue)
 
 
 class PButton {
@@ -961,7 +962,7 @@ class PButton {
             ctx.strokeStyle = hg.color;
             ctx.rect(this.x, this.y + 0.8 * this.h, this.w, this.h * 0.2)
             ctx.stroke()
-            ctx.fillText(this.getYdragVar().toFixed(this.precision), this.x + this.w / 2, this.y +this.h*0.9, this.w * 0.9);
+            ctx.fillText(this.getYdragVar().toFixed(this.precision), this.x + this.w / 2, this.y + this.h * 0.9, this.w * 0.9);
         }
 
     }
@@ -972,8 +973,8 @@ class PButton {
     action() {
         this.fun(this.argObj);
     }
-    pointerDoubleClick(x,y){
-        if (this.contains(x, y)){
+    pointerDoubleClick(x, y) {
+        if (this.contains(x, y)) {
             this.resetFun();
         }
     }
@@ -1265,7 +1266,7 @@ function createTimePanel(txt, xPos, yPos) {
     let panel = new Panel(xPos, yPos, w, uiY, txt);
     panel.anyClickActivates = true;
 
-    let button = new PButton(panel, 0.0, 0.0, 0.333, 1, "t"+ String.fromCharCode("0".charCodeAt(0)+8272),
+    let button = new PButton(panel, 0.0, 0.0, 0.333, 1, "t" + String.fromCharCode("0".charCodeAt(0) + 8272),
         function (dy, yDragVar0) {
             hg.t0 = Math.min(10, Math.max((- 0.01 / pixRat * dy) + yDragVar0, -10))
         },
@@ -1367,7 +1368,7 @@ function createColPanel(osc, oscTxt, xPos, yPos) {
         showReset = true,
         resetFun = function () {
             osc.a = 20;
-        },null,null,0
+        }, null, null, 0
     )
 
     button.yDrag = true;
@@ -1439,7 +1440,7 @@ function createColPanel(osc, oscTxt, xPos, yPos) {
     button.UDarrows = true;
     panel.buttonArray.push(button);
 
-    return panel;  
+    return panel;
 }
 
 
@@ -1447,12 +1448,12 @@ oscLpanel = createLinkOscPanel(oscX, 'lat', oLx, oLy)
 oscXpanel = createRedOscPanel(oscX, 'x', oXx, oXy)
 oscYpanel = createRedOscPanel(oscY, 'y', oYx, oYy)
 oscRpanel = createOscPanel(oscXrot, 'rotary', oRx, oRy)
-colPanel = createColPanel(oscHue,'hue',oCx,oCy);
+colPanel = createColPanel(oscHue, 'hue', oCx, oCy);
 timePanel = createTimePanel('time', oTx, oTy);
 
 topPanel = createTopPanel();
 sharePanel = createSharePanel();
-panelArray = [topPanel,colPanel, oscLpanel, oscXpanel, oscYpanel, oscRpanel, timePanel, sharePanel];
+panelArray = [topPanel, colPanel, oscLpanel, oscXpanel, oscYpanel, oscRpanel, timePanel, sharePanel];
 wakeGalleryServer()
 setGallerySubmitHTML();
 addPointerListeners();
