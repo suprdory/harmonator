@@ -225,9 +225,6 @@ function pointerDownHandler(xc, yc, n = 1) {
     y = yc * pixRat;
 
     if (!showgalleryForm) {
-
-
-
         let now = new Date().getTime();
         let timeSince = now - lastTouch;
         if (timeSince < 300 & n < 2) {
@@ -237,9 +234,7 @@ function pointerDownHandler(xc, yc, n = 1) {
         else {
             panelArray.forEach(panel => panel.pointerDown(x, y))
         }
-
         lastTouch = now;
-
     }
 
     xt = (x - xOff) / (scl)
@@ -250,9 +245,8 @@ function pointerDownHandler(xc, yc, n = 1) {
         // !isLandscape & topPanel.active & (y < (Y - uiY) & y > uiY) ||
         // isLandscape & topPanel.active & (x > uiX) ||
         // !topPanel.active
-        topPanel.active & (y < (Y - uiY) & y > uiY) ||
-        !topPanel.active
-
+        !isLandscape & topPanel.active & (y < (Y - uiY) & y > uiY) ||
+        !topPanel.active || isLandscape & x>uiX
     ) {
         mselect = "pan";
         y0 = y;
@@ -272,21 +266,6 @@ function pointerMoveHandler(xc, yc) {
     yt = (y - yOff) / scl
 
     panelArray.forEach(panel => panel.pointerMove(x, y));
-    // if (mselect == "moving") {
-    //     dthDrag = Math.atan2(yt - pair.fixed.y, xt - pair.fixed.x) - thDragSt;
-    //     if (dthDrag < Math.PI) {
-    //         dthDrag += PI2;
-    //     }
-    //     if (dthDrag > Math.PI) {
-    //         dthDrag -= PI2;
-    //     }
-    //     pair.roll(pair.th + dthDrag);
-    //     thDragSt = Math.atan2(yt - pair.fixed.y, xt - pair.fixed.x);
-    // }
-    // if (mselect == "fixed") {
-    //     pair.translate(xfix0 + (x - x0) / scl, yfix0 + (y - y0) / scl)
-    // }
-
 
     if (mselect == "pan") {
         xOff = xOff0 + (x - x0);
@@ -464,7 +443,7 @@ function createSharePanel() {
 
 }
 function createTopPanel() {
-    w = Math.min(1 * maxPanelWidth, .5 * uiX * 1 / 5);
+    w = Math.min(1 * panelWidth, .5 * uiX * 1 / 5);
     let panel = new Panel(0, 0, w, uiY);
     panel.anyClickActivates = true;
 
@@ -567,24 +546,6 @@ function linkOscAmp(oscA, oscB) {
 function linkOscDec(oscA, oscB) {
     oscB.d = oscA.d;
 }
-function anim() {
-    linkOscCirc(oscXrot, oscYrot);
-    linkOscAmp(oscX, oscY);
-    linkOscDec(oscX, oscY);
-
-    // clear screen
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
-
-    //scaled stuff
-    ctx.setTransform(scl, 0, 0, scl, xOff, yOff)
-    hg.calc();
-    hg.draw(ctx);
-
-    // fixed stuff
-    ctx.setTransform(1, 0, 0, 1, 0, 0)
-    panelArray.forEach(panel => panel.draw())
-    if (hg.auto) { requestAnimationFrame(anim); }
-}
 class Harmonograph {
     constructor(oscX, oscY, oscXrot, oscYrot, oscHue) {
         this.hue = hueInit;
@@ -677,7 +638,6 @@ class Harmonograph {
 
         this.points = [];
         for (let t = this.t0; t < this.t1; t += this.dt) {
-
             this.points.push(new Point(
                 this.oscX.val(t) + this.oscXrot.val(t),
                 this.oscY.val(t) + this.oscYrot.val(t),
@@ -920,7 +880,7 @@ class PButton {
     }
 }
 function createOscPanel(osc, oscTxt, xPos, yPos) {
-    w = Math.min(X / 2, maxPanelWidth * 5);
+    w = Math.min(X / 2, panelWidth * 5);
     h = uiY;
     let panel = new Panel(xPos, yPos, w, h, oscTxt);
     panel.anyClickActivates = true;
@@ -1033,7 +993,7 @@ function createOscPanel(osc, oscTxt, xPos, yPos) {
     return panel;
 }
 function createLinkOscPanel(osc, oscTxt, xPos, yPos) {
-    w = Math.min(X / 2, maxPanelWidth * 2);
+    w = Math.min(X / 2, panelWidth * 2);
     h = uiY;
     let panel = new Panel(xPos, yPos, w, h, oscTxt);
     panel.anyClickActivates = true;
@@ -1083,7 +1043,7 @@ function createLinkOscPanel(osc, oscTxt, xPos, yPos) {
     return panel;
 }
 function createRedOscPanel(osc, oscTxt, xPos, yPos) {
-    w = Math.min(X / 2, maxPanelWidth * 3);
+    w = Math.min(X / 2, panelWidth * 3);
     h = uiY;
     let panel = new Panel(xPos, yPos, w, h, oscTxt);
     panel.anyClickActivates = true;
@@ -1160,7 +1120,7 @@ function createRedOscPanel(osc, oscTxt, xPos, yPos) {
     return panel;
 }
 function createTimePanel(txt, xPos, yPos) {
-    w = Math.min(X * 0.5 * 3 / 5, maxPanelWidth * 3);
+    w = Math.min(X * 0.5 * 3 / 5, panelWidth * 3);
     let panel = new Panel(xPos, yPos, w, uiY, txt);
     panel.anyClickActivates = true;
 
@@ -1217,7 +1177,7 @@ function createTimePanel(txt, xPos, yPos) {
             showRadInfo = isDepressed;
         }, null, showReset = true,
         resetFun = function () {
-            hg.dt = 0.01;
+            hg.dt = 0.05;
         }, null, null, 2
     )
     button.yDrag = true;
@@ -1228,7 +1188,7 @@ function createTimePanel(txt, xPos, yPos) {
     return panel
 }
 function createColPanel(osc, oscTxt, xPos, yPos) {
-    w = Math.min(X / 2, maxPanelWidth * 5);
+    w = Math.min(X / 2, panelWidth * 5);
     h = uiY;
     let panel = new Panel(xPos, yPos, w, h, oscTxt);
     panel.anyClickActivates = true;
@@ -1340,11 +1300,31 @@ function createColPanel(osc, oscTxt, xPos, yPos) {
 
     return panel;
 }
+function anim() {
+    linkOscCirc(oscXrot, oscYrot);
+    linkOscAmp(oscX, oscY);
+    linkOscDec(oscX, oscY);
+
+    // clear screen
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+    //scaled stuff
+    ctx.setTransform(scl, 0, 0, scl, xOff, yOff)
+    hg.calc();
+    hg.draw(ctx);
+    // console.log(baseAmp)
+
+    // fixed stuff
+    ctx.setTransform(1, 0, 0, 1, 0, 0)
+    panelArray.forEach(panel => panel.draw())
+    if (hg.auto) { requestAnimationFrame(anim); }
+}
 function setSize() {
-    console.log("Setting Size")
+    // console.log("Setting Size")
+    pixRat = window.devicePixelRatio * 1.0;
+    console.log("pixRat:",pixRat)
     X = window.innerWidth * pixRat;
     Y = window.innerHeight * pixRat;
-    pixRat = window.devicePixelRatio * 1.0;
     canvas.height = window.innerHeight * pixRat;
     canvas.width = window.innerWidth * pixRat;
     canvas.style.width = window.innerWidth + "px";
@@ -1353,58 +1333,93 @@ function setSize() {
     baseLW = 1 * pixRat;
     // ui size
     uiY = 0.25 * Y;
-    uiX = X;
-
-    if (X > maxPanelWidth * nOscButtons) {
-        oLx = maxPanelWidth * 0;
+    uiX=X
+    panelWidth = Math.min(X / 11, 80);
+    if (Y < 1200) {
+        panelWidth = Math.min(X / 11, 80);
+        uiY=0.5*Y;
+        oLx = panelWidth * 0;
         oLy = Y - uiY;
-        oXx = maxPanelWidth * 2;
+        oXx = panelWidth * 2;
         oXy = Y - uiY;
-        oYx = maxPanelWidth * 5;
+        oYx = panelWidth * 5;
         oYy = Y - uiY;
-        oRx = maxPanelWidth * 8;
-        oRy = Y - uiY;
-        oTx = maxPanelWidth * 13;
+        oRx = panelWidth * 6;
+        oRy = 0;
+        oTx = panelWidth * 8;
         oTy = Y - uiY;
-        oCx = maxPanelWidth * 1;
+        oCx = panelWidth * 1;
+        oCy = 0;
+        // initial screen centre
+        xOff = panelWidth*11+ (X-panelWidth*11) / 2;
+        yOff = (Y ) / 2;
+        baseAmp = 0.4 * Math.min(X, Y)
+        isLandscape=true;
+        uiX=11*panelWidth
+
+    }
+    else if (X > panelWidth * nOscButtons) {
+        // panelWidth = Math.min(X / 11, 100);
+        oLx = panelWidth * 0;
+        oLy = Y - uiY;
+        oXx = panelWidth * 2;
+        oXy = Y - uiY;
+        oYx = panelWidth * 5;
+        oYy = Y - uiY;
+        oRx = panelWidth * 8;
+        oRy = Y - uiY;
+        oTx = panelWidth * 13;
+        oTy = Y - uiY;
+        oCx = panelWidth * 1;
         oCy = 0;
         // initial screen centre
         xOff = X / 2;
         yOff = (Y - uiY) / 2;
         baseAmp = 0.25 * Math.min(X, Y)
+        isLandscape = true;
     } else {
-        oLx = maxPanelWidth * 0;
+        panelWidth = Math.min(X / 11, 100);
+        oLx = panelWidth * 0;
         oLy = Y - uiY;
-        oXx = maxPanelWidth * 2;
+        oXx = panelWidth * 2;
         oXy = Y - uiY
-        oYx = maxPanelWidth * 5;
+        oYx = panelWidth * 5;
         oYy = Y - uiY
-        oRx = maxPanelWidth * 1;
+        oRx = panelWidth * 1;
         oRy = 0
-        oTx = maxPanelWidth * 8;
+        oTx = panelWidth * 8;
         oTy = Y - uiY
-        oCx = maxPanelWidth * 6;
+        oCx = panelWidth * 6;
         oCy = 0;
         // initial screen centre
         xOff = X / 2;
         yOff = Y / 2;
-        baseAmp = 0.25 * Math.min(X, Y)
+        baseAmp = 0.35 * Math.min(X, Y)
+        isLandscape = false;
     }
-
-    maxPanelWidth = Math.min(X / 11, 100);
-
     // anim();
+    oscLpanel = createLinkOscPanel(oscX, 'lat', oLx, oLy)
+    oscXpanel = createRedOscPanel(oscX, 'x', oXx, oXy)
+    oscYpanel = createRedOscPanel(oscY, 'y', oYx, oYy)
+    oscRpanel = createOscPanel(oscXrot, 'rotary', oRx, oRy)
+    colPanel = createColPanel(oscHue, 'hue', oCx, oCy);
+    timePanel = createTimePanel('time', oTx, oTy);
+    topPanel = createTopPanel();
+    sharePanel = createSharePanel();
+    panelArray = [topPanel, colPanel, oscLpanel, oscXpanel, oscYpanel, oscRpanel, timePanel, sharePanel];
 }
+
 
 const canvas = document.getElementById("cw");
 const ctx = canvas.getContext("2d");
 const PI2 = Math.PI * 2;
-let txtSize, pixRat, baseLW, baseAmp, maxPanelWidth, uiY
+let txtSize, pixRat, baseLW, baseAmp, panelWidth, uiY, X, Y,isLandscape
+let oLx, oLy, oXx, oXy, oYx, oYy, oRx, oRy, oTx, oTy, oCx, oCy;
 
 let scl = 1.0; // zoom factor
 
-let clickCase = null;
-let mouseDown = false;
+// let clickCase = null;
+let mouseDown = false; //required for detecting mouse drags
 let lastTouch = new Date().getTime();
 let showWheels = true;
 let showWheelsOverride = false;
@@ -1427,33 +1442,20 @@ canvas.style.backgroundColor = bgFillStyle
 const galleryLW = 1;
 const gallerySize = 1080;
 
-const dth = PI2 / 100;
-
 //vars for pinch zoom handling
 var prevDiff = 0;
 var curDiff = 0;
 var dDiff = 0;
 
-let nOscButtons = 16
+let nOscButtons = 22
 oscX = new Oscillator(1.0, 1, 0.0, 0.01);
 oscY = new Oscillator(1.0, 2, 0.0, 0.01);
 oscXrot = new Oscillator(0.3, 1, 0, 0.001);
 oscYrot = new Oscillator(0.0, 1, 0.25, 0.001);
 oscHue = new Oscillator(20, 1, 0, 0);
 oscArray = [oscX, oscY, oscXrot, oscYrot];
-
 let hg = new Harmonograph(oscX, oscY, oscXrot, oscYrot, oscHue)
-
 setSize();
-oscLpanel = createLinkOscPanel(oscX, 'lat', oLx, oLy)
-oscXpanel = createRedOscPanel(oscX, 'x', oXx, oXy)
-oscYpanel = createRedOscPanel(oscY, 'y', oYx, oYy)
-oscRpanel = createOscPanel(oscXrot, 'rotary', oRx, oRy)
-colPanel = createColPanel(oscHue, 'hue', oCx, oCy);
-timePanel = createTimePanel('time', oTx, oTy);
-topPanel = createTopPanel();
-sharePanel = createSharePanel();
-panelArray = [topPanel, colPanel, oscLpanel, oscXpanel, oscYpanel, oscRpanel, timePanel, sharePanel];
 wakeGalleryServer()
 setGallerySubmitHTML();
 addPointerListeners();
