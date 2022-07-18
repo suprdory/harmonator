@@ -144,6 +144,11 @@ function isTouchDevice() {
         (navigator.msMaxTouchPoints > 0));
 }
 function addPointerListeners() {
+    window.addEventListener("resize", () => {
+        setSize()
+        anim();
+    }
+    );
     if (isTouchDevice()) {
         canvas.addEventListener("touchstart", e => {
             e.preventDefault();
@@ -508,7 +513,7 @@ function setGallerySubmitHTML() {
 function wakeGalleryServer() {
     fetch(galleryAPIurl)
         .then(response => response.text())
-        .then(data => console.log(data));
+    // .then(data => console.log(data));
 
 }
 function drawArrow(ctx, fromx, fromy, tox, toy, arrowWidth, color) {
@@ -563,8 +568,6 @@ function linkOscDec(oscA, oscB) {
     oscB.d = oscA.d;
 }
 function anim() {
-
-
     linkOscCirc(oscXrot, oscYrot);
     linkOscAmp(oscX, oscY);
     linkOscDec(oscX, oscY);
@@ -752,111 +755,6 @@ class Harmonograph {
 
 
 }
-
-const canvas = document.getElementById("cw");
-const ctx = canvas.getContext("2d");
-const PI2 = Math.PI * 2;
-
-let pixRat = window.devicePixelRatio * 1.0;
-
-canvas.height = window.innerHeight * pixRat;
-canvas.width = window.innerWidth * pixRat;
-canvas.style.width = window.innerWidth + "px";
-canvas.style.height = window.innerHeight + "px";
-let X = canvas.width;
-let Y = canvas.height;
-
-let scl = 1.0;
-
-const txtSize = 60 * pixRat;
-let baseLW = 1 * pixRat;
-
-let clickCase = null;
-let mouseDown = false;
-let lastTouch = new Date().getTime();
-let showWheels = true;
-let showWheelsOverride = false;
-let showInfo = false;
-let showRadInfo = false;
-let showColInfo = false;
-let showgalleryForm = false;
-
-const shareBorderfrac = 0.15;
-const hueInit = Math.random() * 360
-const bgFillStyle = "hsl(" + hueInit + ",100%,5%)";
-const bgFillStyleAlpha = "hsla(" + hueInit + ",100%,5%,.80)";
-const fgFillStyle = "hsl(" + hueInit + ",100%,5%)";
-const fgFillStyleAlpha = "hsla(" + hueInit + ",100%,50%,.50)";
-const transCol = "rgb(128,128,128,0.4)"
-const uiTextColor = "white"
-const uiBorder = 5;
-
-canvas.style.backgroundColor = bgFillStyle
-
-const galleryLW = 1;
-const gallerySize = 1080;
-
-const dth = PI2 / 100;
-
-//vars for pinch zoom handling
-var prevDiff = 0;
-var curDiff = 0;
-var dDiff = 0;
-
-// ui size
-let uiY = 0.25 * Y;
-let uiX = X;
-
-const maxPanelWidth = Math.min(X / 11, 100);
-
-let nOscButtons = 16
-if (X > maxPanelWidth * nOscButtons) {
-    oLx = maxPanelWidth * 0;
-    oLy = Y - uiY;
-    oXx = maxPanelWidth * 2;
-    oXy = Y - uiY;
-    oYx = maxPanelWidth * 5;
-    oYy = Y - uiY;
-    oRx = maxPanelWidth * 8;
-    oRy = Y - uiY;
-    oTx = maxPanelWidth * 13;
-    oTy = Y - uiY;
-    oCx = maxPanelWidth * 1;
-    oCy = 0;
-    // initial screen centre
-    xOff = X / 2;
-    yOff = (Y - uiY) / 2;
-    baseAmp = 0.25 * Math.min(X, Y)
-} else {
-    oLx = maxPanelWidth * 0;
-    oLy = Y - uiY;
-    oXx = maxPanelWidth * 2;
-    oXy = Y - uiY
-    oYx = maxPanelWidth * 5;
-    oYy = Y - uiY
-    oRx = maxPanelWidth * 1;
-    oRy = 0
-    oTx = maxPanelWidth * 8;
-    oTy = Y - uiY
-    oCx = maxPanelWidth * 6;
-    oCy = 0;
-    // initial screen centre
-    xOff = X / 2;
-    yOff = Y / 2;
-    baseAmp = 0.25 * Math.min(X, Y)
-}
-
-oscX = new Oscillator(1.0, 1, 0.0, 0.01);
-oscY = new Oscillator(1.0, 2, 0.0, 0.01);
-oscXrot = new Oscillator(0.3, 1, 0, 0.001);
-oscYrot = new Oscillator(0.0, 1, 0.25, 0.001);
-oscHue = new Oscillator(20, 1, 0, 0);
-
-oscArray = [oscX, oscY, oscXrot, oscYrot];
-
-let hg = new Harmonograph(oscX, oscY, oscXrot, oscYrot, oscHue)
-
-
 class PButton {
     constructor(panel, x, y, w, h, txt, fun, argObj, getXdragVar,
         getYdragVar, isDepressedFun, toggleValFun, showReset, resetFun, autoStateFun, autoTogFun, precision = 2) {
@@ -1442,15 +1340,117 @@ function createColPanel(osc, oscTxt, xPos, yPos) {
 
     return panel;
 }
+function setSize() {
+    console.log("Setting Size")
+    X = window.innerWidth * pixRat;
+    Y = window.innerHeight * pixRat;
+    pixRat = window.devicePixelRatio * 1.0;
+    canvas.height = window.innerHeight * pixRat;
+    canvas.width = window.innerWidth * pixRat;
+    canvas.style.width = window.innerWidth + "px";
+    canvas.style.height = window.innerHeight + "px";
+    txtSize = 60 * pixRat;
+    baseLW = 1 * pixRat;
+    // ui size
+    uiY = 0.25 * Y;
+    uiX = X;
 
+    if (X > maxPanelWidth * nOscButtons) {
+        oLx = maxPanelWidth * 0;
+        oLy = Y - uiY;
+        oXx = maxPanelWidth * 2;
+        oXy = Y - uiY;
+        oYx = maxPanelWidth * 5;
+        oYy = Y - uiY;
+        oRx = maxPanelWidth * 8;
+        oRy = Y - uiY;
+        oTx = maxPanelWidth * 13;
+        oTy = Y - uiY;
+        oCx = maxPanelWidth * 1;
+        oCy = 0;
+        // initial screen centre
+        xOff = X / 2;
+        yOff = (Y - uiY) / 2;
+        baseAmp = 0.25 * Math.min(X, Y)
+    } else {
+        oLx = maxPanelWidth * 0;
+        oLy = Y - uiY;
+        oXx = maxPanelWidth * 2;
+        oXy = Y - uiY
+        oYx = maxPanelWidth * 5;
+        oYy = Y - uiY
+        oRx = maxPanelWidth * 1;
+        oRy = 0
+        oTx = maxPanelWidth * 8;
+        oTy = Y - uiY
+        oCx = maxPanelWidth * 6;
+        oCy = 0;
+        // initial screen centre
+        xOff = X / 2;
+        yOff = Y / 2;
+        baseAmp = 0.25 * Math.min(X, Y)
+    }
 
+    maxPanelWidth = Math.min(X / 11, 100);
+
+    // anim();
+}
+
+const canvas = document.getElementById("cw");
+const ctx = canvas.getContext("2d");
+const PI2 = Math.PI * 2;
+let txtSize, pixRat, baseLW, baseAmp, maxPanelWidth, uiY
+
+let scl = 1.0; // zoom factor
+
+let clickCase = null;
+let mouseDown = false;
+let lastTouch = new Date().getTime();
+let showWheels = true;
+let showWheelsOverride = false;
+let showInfo = false;
+let showRadInfo = false;
+let showColInfo = false;
+let showgalleryForm = false;
+
+const shareBorderfrac = 0.15;
+const hueInit = Math.random() * 360
+const bgFillStyle = "hsl(" + hueInit + ",100%,5%)";
+const bgFillStyleAlpha = "hsla(" + hueInit + ",100%,5%,.80)";
+const fgFillStyle = "hsl(" + hueInit + ",100%,5%)";
+const fgFillStyleAlpha = "hsla(" + hueInit + ",100%,50%,.50)";
+const transCol = "rgb(128,128,128,0.4)"
+const uiTextColor = "white"
+const uiBorder = 5;
+canvas.style.backgroundColor = bgFillStyle
+
+const galleryLW = 1;
+const gallerySize = 1080;
+
+const dth = PI2 / 100;
+
+//vars for pinch zoom handling
+var prevDiff = 0;
+var curDiff = 0;
+var dDiff = 0;
+
+let nOscButtons = 16
+oscX = new Oscillator(1.0, 1, 0.0, 0.01);
+oscY = new Oscillator(1.0, 2, 0.0, 0.01);
+oscXrot = new Oscillator(0.3, 1, 0, 0.001);
+oscYrot = new Oscillator(0.0, 1, 0.25, 0.001);
+oscHue = new Oscillator(20, 1, 0, 0);
+oscArray = [oscX, oscY, oscXrot, oscYrot];
+
+let hg = new Harmonograph(oscX, oscY, oscXrot, oscYrot, oscHue)
+
+setSize();
 oscLpanel = createLinkOscPanel(oscX, 'lat', oLx, oLy)
 oscXpanel = createRedOscPanel(oscX, 'x', oXx, oXy)
 oscYpanel = createRedOscPanel(oscY, 'y', oYx, oYy)
 oscRpanel = createOscPanel(oscXrot, 'rotary', oRx, oRy)
 colPanel = createColPanel(oscHue, 'hue', oCx, oCy);
 timePanel = createTimePanel('time', oTx, oTy);
-
 topPanel = createTopPanel();
 sharePanel = createSharePanel();
 panelArray = [topPanel, colPanel, oscLpanel, oscXpanel, oscYpanel, oscRpanel, timePanel, sharePanel];
