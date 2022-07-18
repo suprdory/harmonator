@@ -146,7 +146,7 @@ function isTouchDevice() {
 function addPointerListeners() {
     window.addEventListener("resize", () => {
         setSize()
-        anim();
+        if (!hg.auto) { requestAnimationFrame(anim); }
     }
     );
     if (isTouchDevice()) {
@@ -246,7 +246,7 @@ function pointerDownHandler(xc, yc, n = 1) {
         // isLandscape & topPanel.active & (x > uiX) ||
         // !topPanel.active
         !isLandscape & topPanel.active & (y < (Y - uiY) & y > uiY) ||
-        !topPanel.active || isLandscape & x>uiX
+        !topPanel.active || isLandscape & x > uiX
     ) {
         mselect = "pan";
         y0 = y;
@@ -369,7 +369,7 @@ function shareImage() {
             };
             navigator.share(shareData)
             sharePanel.wait = false;
-            anim()
+            if (!hg.auto) { requestAnimationFrame(anim); }
         })
     }
 }
@@ -377,7 +377,7 @@ function uploadImage(name, comment) {
     if (hg.points.length > 0) {
         console.log('wait')
         sharePanel.wait = true;
-        anim();
+        if (!hg.auto) { requestAnimationFrame(anim); }
         canvasSq = drawSquareFullImage(gallerySize);
         canvasSq.toBlob(function (blob) {
             imgFile = new File(
@@ -405,12 +405,12 @@ function uploadImage(name, comment) {
                     console.log(data);
                     console.log('unwait')
                     sharePanel.wait = false;
-                    anim()
+                    if (!hg.auto) { requestAnimationFrame(anim); }
                 })
                 .catch((error) => {
                     console.error('Error:', error);
                     sharePanel.wait = false;
-                    anim()
+                    if (!hg.auto) { requestAnimationFrame(anim); }
                 });
         })
     }
@@ -442,9 +442,9 @@ function createSharePanel() {
     return (panel);
 
 }
-function createTopPanel() {
+function createTopPanel(oSx, oSy) {
     w = Math.min(1 * panelWidth, .5 * uiX * 1 / 5);
-    let panel = new Panel(0, 0, w, uiY);
+    let panel = new Panel(oSx, oSy, w, uiY);
     panel.anyClickActivates = true;
 
     panel.buttonArray.push(
@@ -1322,7 +1322,7 @@ function anim() {
 function setSize() {
     // console.log("Setting Size")
     pixRat = window.devicePixelRatio * 1.0;
-    console.log("pixRat:",pixRat)
+    console.log("pixRat:", pixRat)
     X = window.innerWidth * pixRat;
     Y = window.innerHeight * pixRat;
     canvas.height = window.innerHeight * pixRat;
@@ -1333,68 +1333,82 @@ function setSize() {
     baseLW = 1 * pixRat;
     // ui size
     uiY = 0.25 * Y;
-    uiX=X
-    panelWidth = Math.min(X / 11, 80);
-    if (Y < 1200) {
-        panelWidth = Math.min(X / 11, 80);
-        uiY=0.5*Y;
+    uiX = X;
+    maxPanelWidth = 50 * pixRat;
+    let xPanBuf = 0
+    panelWidth = Math.min(X / nOscButtons, maxPanelWidth);
+    console.log(window.innerHeight, window.innerWidth)
+    if (window.innerHeight < 500 & window.innerWidth > 800) {
+        panelWidth = Math.min(X / 11/2, maxPanelWidth);
+        uiY = 0.5 * Y;
         oLx = panelWidth * 0;
         oLy = Y - uiY;
         oXx = panelWidth * 2;
         oXy = Y - uiY;
         oYx = panelWidth * 5;
         oYy = Y - uiY;
-        oRx = panelWidth * 6;
-        oRy = 0;
         oTx = panelWidth * 8;
         oTy = Y - uiY;
+        oRx = panelWidth * 6;
+        oRy = 0;
         oCx = panelWidth * 1;
         oCy = 0;
+        oSx = panelWidth * 0;
+        oSy = 0;
         // initial screen centre
-        xOff = panelWidth*11+ (X-panelWidth*11) / 2;
-        yOff = (Y ) / 2;
+        xOff = panelWidth * 11 + (X - panelWidth * 11) / 2;
+        yOff = Y / 2;
         baseAmp = 0.4 * Math.min(X, Y)
-        isLandscape=true;
-        uiX=11*panelWidth
-
+        isLandscape = true;
+        uiX = 11 * panelWidth;
     }
-    else if (X > panelWidth * nOscButtons) {
-        // panelWidth = Math.min(X / 11, 100);
-        oLx = panelWidth * 0;
+    else if (X > maxPanelWidth * nOscButtons) {
+        if (panelWidth * nOscButtons < X) {
+            xPanBuf = (X - panelWidth * nOscButtons) / 2;
+        }
+        oLx = xPanBuf + panelWidth * 1;
         oLy = Y - uiY;
-        oXx = panelWidth * 2;
+        oXx = xPanBuf + panelWidth * 3;
         oXy = Y - uiY;
-        oYx = panelWidth * 5;
+        oYx = xPanBuf + panelWidth * 6;
         oYy = Y - uiY;
-        oRx = panelWidth * 8;
+        oRx = xPanBuf + panelWidth * 9;
         oRy = Y - uiY;
-        oTx = panelWidth * 13;
+        oTx = xPanBuf + panelWidth * 19;
         oTy = Y - uiY;
-        oCx = panelWidth * 1;
-        oCy = 0;
+        oCx = xPanBuf + panelWidth * 14;
+        oCy = Y - uiY;
+        oSx = xPanBuf + panelWidth * 0;
+        oSy = Y - uiY;
         // initial screen centre
         xOff = X / 2;
         yOff = (Y - uiY) / 2;
         baseAmp = 0.25 * Math.min(X, Y)
-        isLandscape = true;
+        isLandscape = false;
     } else {
-        panelWidth = Math.min(X / 11, 100);
-        oLx = panelWidth * 0;
+        panelWidth = Math.min(X / 11, maxPanelWidth);
+        // console.log(X,panelWidth)
+        if (panelWidth * 11 < X) {
+            xPanBuf = (X - panelWidth * 11) / 2;
+        }
+        oLx = xPanBuf + panelWidth * 0;
         oLy = Y - uiY;
-        oXx = panelWidth * 2;
+        oXx = xPanBuf + panelWidth * 2;
         oXy = Y - uiY
-        oYx = panelWidth * 5;
+        oYx = xPanBuf + panelWidth * 5;
         oYy = Y - uiY
-        oRx = panelWidth * 1;
-        oRy = 0
-        oTx = panelWidth * 8;
+        oTx = xPanBuf + panelWidth * 8;
         oTy = Y - uiY
-        oCx = panelWidth * 6;
+        oRx = xPanBuf + panelWidth * 1;
+        oRy = 0
+        oCx = xPanBuf + panelWidth * 6;
         oCy = 0;
+        oSx = xPanBuf + panelWidth * 0;
+        oSy = 0;
         // initial screen centre
         xOff = X / 2;
         yOff = Y / 2;
-        baseAmp = 0.35 * Math.min(X, Y)
+        baseAmp = 0.20 * Math.min(X, Y)
         isLandscape = false;
     }
     // anim();
@@ -1404,7 +1418,7 @@ function setSize() {
     oscRpanel = createOscPanel(oscXrot, 'rotary', oRx, oRy)
     colPanel = createColPanel(oscHue, 'hue', oCx, oCy);
     timePanel = createTimePanel('time', oTx, oTy);
-    topPanel = createTopPanel();
+    topPanel = createTopPanel(oSx, oSy);
     sharePanel = createSharePanel();
     panelArray = [topPanel, colPanel, oscLpanel, oscXpanel, oscYpanel, oscRpanel, timePanel, sharePanel];
 }
@@ -1413,7 +1427,7 @@ function setSize() {
 const canvas = document.getElementById("cw");
 const ctx = canvas.getContext("2d");
 const PI2 = Math.PI * 2;
-let txtSize, pixRat, baseLW, baseAmp, panelWidth, uiY, X, Y,isLandscape
+let txtSize, pixRat, baseLW, baseAmp, panelWidth, uiY, X, Y, isLandscape
 let oLx, oLy, oXx, oXy, oYx, oYy, oRx, oRy, oTx, oTy, oCx, oCy;
 
 let scl = 1.0; // zoom factor
