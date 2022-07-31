@@ -319,7 +319,7 @@ function calcLCM(a, b) { //lowest common multiple
         min++;
     }
 }
-function drawSquareFullImage(n = 1080) {
+function drawSquareFullImage(n = 1920) {
     // pair.penUp();
     let baseLWtemp = baseLW;
     baseLW = galleryLW * baseLW;
@@ -352,7 +352,7 @@ function drawSquareFullImage(n = 1080) {
 function shareImage() {
     if (hg.points.length > 1) {
         sharePanel.wait = true;
-        canvasSq = drawSquareFullImage(1080);
+        canvasSq = drawSquareFullImage(shareRes);
         canvasSq.toBlob(function (blob) {
             const filesArray = [
                 new File(
@@ -378,7 +378,7 @@ function uploadImage(name, comment) {
         console.log('wait')
         sharePanel.wait = true;
         if (!hg.auto) { requestAnimationFrame(anim); }
-        canvasSq = drawSquareFullImage(gallerySize);
+        canvasSq = drawSquareFullImage(galleryRes);
         canvasSq.toBlob(function (blob) {
             imgFile = new File(
                 [blob],
@@ -1454,7 +1454,8 @@ const uiBorder = 5;
 canvas.style.backgroundColor = bgFillStyle
 
 const galleryLW = 1;
-const gallerySize = 1080;
+const galleryRes = 1920;
+const shareRes = 1920;
 
 //vars for pinch zoom handling
 var prevDiff = 0;
