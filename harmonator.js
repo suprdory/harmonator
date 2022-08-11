@@ -124,6 +124,14 @@ class Panel {
         if (this.active) {
             this.buttonArray.forEach(button => button.pointerDown(x, y))
         }
+        if (this.active & x > this.x & x < this.x + this.w & y > this.py & y < this.py+this.ph) {
+            console.log("pointer down in panel")
+            return true;
+        }
+        else {
+            console.log("pointer down not in panel")
+            return false;
+        }
     }
 
     pointerUp(x, y) {
@@ -1339,7 +1347,7 @@ function setSize() {
     panelWidth = Math.min(X / nOscButtons, maxPanelWidth);
     console.log(window.innerHeight, window.innerWidth)
     if (window.innerHeight < 500 & window.innerWidth > 800) {
-        panelWidth = Math.min(X / 11/2, maxPanelWidth);
+        panelWidth = Math.min(X / 11 / 2, maxPanelWidth);
         uiY = 0.5 * Y;
         oLx = panelWidth * 0;
         oLy = Y - uiY;
