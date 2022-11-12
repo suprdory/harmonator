@@ -381,6 +381,51 @@ function shareImage() {
         })
     }
 }
+function downloadImage() {
+    if (hg.points.length > 0) {
+        let date = new Date().toJSON();
+        // console.log(date); // 2022-06-17T11:06:50.369Z
+        sharePanel.wait = true;
+        canvasSq = drawSquareFullImage(shareRes);
+        canvasSq.toBlob(function (blob) {
+            const filesArray = [
+                new File(
+                    [blob],
+                    "harmonator-" + date + ".png",
+                    {
+                        type: "image/png",
+                        lastModified: new Date().getTime()
+                    }
+                )
+            ];
+            const shareData = {
+                files: filesArray,
+            };
+
+            downloadFile(shareData['files'][0]);
+            sharePanel.wait = false;
+            anim()
+        })
+    }
+}
+function downloadFile(file) {
+    // Create a link and set the URL using `createObjectURL`
+    const link = document.createElement("a");
+    link.style.display = "none";
+    link.href = URL.createObjectURL(file);
+    link.download = file.name;
+
+    // It needs to be added to the DOM so it can be clicked
+    document.body.appendChild(link);
+    link.click();
+
+    // To make this work on Firefox we need to wait
+    // a little while before removing it.
+    setTimeout(() => {
+        URL.revokeObjectURL(link.href);
+        link.parentNode.removeChild(link);
+    }, 0);
+}
 function uploadImage(name, comment) {
     if (hg.points.length > 0) {
         console.log('wait')
@@ -431,19 +476,23 @@ function createSharePanel() {
     panel.wait = false;
     panel.active = false;
     panel.buttonArray.push(
-        new PButton(panel, 0.0, 0, 1, 0.1, "Close",
+        new PButton(panel, 0.0, 0, 1, 0.1, ["Close"],
             function () { panel.active = false; })
     );
     panel.buttonArray.push(
-        new PButton(panel, 0.1, .2, .8, 0.1, "Share Image",
+        new PButton(panel, 0.1, .2, .8, 0.1, ["Share Image"],
             function () { shareImage(); })
     );
     panel.buttonArray.push(
-        new PButton(panel, 0.1, .5, .8, 0.1, "Upload to Gallery",
+        new PButton(panel, 0.1, .4, .8, 0.1, ["Download Image"],
+            function () { downloadImage(); })
+    );
+    panel.buttonArray.push(
+        new PButton(panel, 0.1, .6, .8, 0.1, ["Upload to Gallery"],
             function () { toggleGalleryForm() })
     );
     panel.buttonArray.push(
-        new PButton(panel, 0.1, .8, .8, 0.1, "View Gallery",
+        new PButton(panel, 0.1, .8, .8, 0.1, ["View Gallery"],
             function () { window.location.href = 'gallery.html' })
     );
 
