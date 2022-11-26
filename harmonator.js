@@ -124,7 +124,7 @@ class Panel {
         if (this.active) {
             this.buttonArray.forEach(button => button.pointerDown(x, y))
         }
-        if (this.active & x > this.x & x < this.x + this.w & y > this.py & y < this.py+this.ph) {
+        if (this.active & x > this.x & x < this.x + this.w & y > this.py & y < this.py + this.ph) {
             console.log("pointer down in panel")
             return true;
         }
@@ -225,14 +225,16 @@ function addPointerListeners() {
     }
 }
 function pointerWheelHandler(dW, xc, yc) {
-    zoomHandler(dW, xc, yc);
-    if (!hg.auto) { requestAnimationFrame(anim); }
+    if (!showDocs & !showgalleryForm) {
+        zoomHandler(dW, xc, yc);
+        if (!hg.auto) { requestAnimationFrame(anim); }
+    }
 }
 function pointerDownHandler(xc, yc, n = 1) {
     x = xc * pixRat;
     y = yc * pixRat;
 
-    if (!showgalleryForm) {
+    if (!showgalleryForm & !showDocs) {
         let now = new Date().getTime();
         let timeSince = now - lastTouch;
         if (timeSince < 300 & n < 2) {
@@ -505,18 +507,23 @@ function createTopPanel(oSx, oSy) {
     panel.anyClickActivates = true;
 
     panel.buttonArray.push(
-        new PButton(panel, 0.0, 0.0, 1, 0.5, "Share",
+        new PButton(panel, 0.0, 0.333, 1, 0.333, "Share",
             function () { sharePanel.active = true; })
     );
     panel.buttonArray.push(
-        new PButton(panel, 0.0, 0.5, 1, 0.5, "Hide",
+        new PButton(panel, 0.0, 0.666, 1, 0.333, "Hide",
             function () {
-                // showUI = false;
                 showWheels = false;
                 panelArray.forEach(panel => panel.active = false)
             })
     );
+    panel.buttonArray.push(
+        new PButton(panel, 0.0, 0.0, 1, 0.333, "?",
+            function () { toggleDocs(); })
+    );
+
     return (panel)
+
 }
 function submitToGallery() {
     let name = document.getElementById('name').value;
@@ -545,6 +552,7 @@ function setGallerySubmitHTML() {
     document.getElementById("submit").addEventListener("click", submitToGallery, { passive: true })
     document.getElementById("close").addEventListener("click", toggleGalleryForm, { passive: true })
     document.getElementById('name').value = localStorage.getItem('name');
+    document.getElementById("closeDocs").addEventListener("click", toggleDocs, { passive: true })
 }
 function wakeGalleryServer() {
     fetch(galleryAPIurl)
@@ -1479,7 +1487,24 @@ function setSize() {
     sharePanel = createSharePanel();
     panelArray = [topPanel, colPanel, oscLpanel, oscXpanel, oscYpanel, oscRpanel, timePanel, sharePanel];
 }
+function toggleDocs() {
+    docs = document.getElementById("docs").style;
+    // console.log(form.visibility)
+    if (!(docs.visibility == "visible")) {
+        docs.visibility = "visible"
+        showDocs = true;
+    }
+    else {
+        docs.visibility = "hidden"
+        showDocs = false;
+        // if (!pair.auto) {
+        //     anim();
+        // }
 
+    }
+
+
+}
 
 const canvas = document.getElementById("cw");
 const ctx = canvas.getContext("2d");
@@ -1498,6 +1523,7 @@ let showInfo = false;
 let showRadInfo = false;
 let showColInfo = false;
 let showgalleryForm = false;
+let showDocs = false;
 
 const shareBorderfrac = 0.15;
 const hueInit = Math.random() * 360

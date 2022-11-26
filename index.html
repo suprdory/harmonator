@@ -49,9 +49,69 @@
         <input type="button" id="submit" value="Upload">
         <input type="button" id="close" value="Close">
     </div>
+
+    <div class="centred">
+        <div id="docs" class="centred">
+            <input type="button" id="closeDocs" value="Close">
+            <div class="docText hiddenScroll">
+                <h1>Harmonata</h1>
+
+                <p>A tool for instantaneously exploring the extraordinary geometries
+                    of harmony. Inspired by the old harmonograph "toy" but with its essential magic removed.</p>
+                <p> A old fashioned harmonograph typically consisted of three independant oscillators (pendulums): a
+                    rotary (rot) oscillator which moved some paper, and two lateral oscillators (x, y) which controlled
+                    a pen. You'd set the pendulums swinging, lower the pen, then wait as the pen traces its path and the
+                    swinging motions naturally decay. Now you don't have to wait. Here, modern technology also allows
+                    the pen hue to oscillate.</p>
+
+                <h2>Instructions</h2>
+
+                <p> The vertical sliders may be used to set the properties of the oscillators. Double-click a slider to
+                    return to its default value. </p>
+                <p> "View Gallery" in the "Share" menu for inspiration.</p>
+
+                <h3>Sliders</h3>
+                <h4>amp</h4>
+                <p>The amplitude of an oscillator. Note the lateral oscillators share an amplitude and decay rate.</p>
+                <h4>decay</h4>
+                <p> The (exponential) decay rate of an oscillator. See above.</p>
+                <h4>freq</h4>
+                <p>Oscillator frequecy, constrained to integer values.</p>
+                <h4>fine</h4>
+                <p>Fine (de-) tuning of the oscillator frequency.</p>
+
+                <h4>phase</h4>
+                <p> Adjust the starting point of the oscillation.</p>
+                <h4>auto</h4>
+                <p> Automatically progress the phase of the oscillator.</p>
+                <h4>off</h4>
+                <p> Offset of the oscillatior value. Only available for ther hue oscillator.</p>
+                <h4>t0</h4>
+                <p> Starting time of the simulation. All oscillators share the time time controls.</p>
+                <h4>t</h4>
+                <p> Finishing time of the simulation.</p>
+                <h4>dt</h4>
+                <p> Time increment in the simulation - reduce for highest resolution (slow) or increase for potentially
+                    pleasing discretization effects.</p>
+
+                <h3>Buttons</h3>
+                <h4>Share</h4>
+                <p>Opens sub menu with "Share Image" and "Download Image" options. "Upload to Gallery" and "View
+                    Gallery" allow interaction with a public Spiralator gallery.</p>
+                <h4>Hide</h4>
+                <p> Hide the user interface. Bring it back with a double click.</p>
+                <h4>?</h4>
+                <p>Brings up these docs. Again.</p>
+                <h1> Thanks!</h1>
+                <p>If you enjoy Harmonata you may also be interested in <a href="https://spiralator.com">Spiralator</a>.
+                </p>
+                <p>Contact me: <a href="mailto:suprdory@gmail.com">suprdory@gmail.com</a></p>
+            </div>
+        </div>
+    </div>
+
 </body>
 <script src="config.js"></script>
 <script src="harmonator.js"></script>
-<!-- <script src="config_local.js"></script> -->
 
 </html>
