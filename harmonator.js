@@ -1381,7 +1381,18 @@ function anim() {
 
     // fixed stuff
     ctx.setTransform(1, 0, 0, 1, 0, 0)
+
+
+
     panelArray.forEach(panel => panel.draw())
+
+    if (showDocs) {
+        // darken background
+        ctx.fillStyle = bgFillStyleAlpha;
+        ctx.fillRect(0, 0, X, Y);
+
+    }
+
     if (hg.auto) { requestAnimationFrame(anim); }
 }
 function setSize() {
