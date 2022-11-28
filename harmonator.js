@@ -1382,15 +1382,12 @@ function anim() {
     // fixed stuff
     ctx.setTransform(1, 0, 0, 1, 0, 0)
 
-
-
     panelArray.forEach(panel => panel.draw())
 
     if (showDocs) {
         // darken background
         ctx.fillStyle = bgFillStyleAlpha;
         ctx.fillRect(0, 0, X, Y);
-
     }
 
     if (hg.auto) { requestAnimationFrame(anim); }
@@ -1508,9 +1505,9 @@ function toggleDocs() {
     else {
         docs.visibility = "hidden"
         showDocs = false;
-        // if (!pair.auto) {
-        //     anim();
-        // }
+        if (!hg.auto) {
+            anim();
+        }
 
     }
 
