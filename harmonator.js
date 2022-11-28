@@ -129,7 +129,7 @@ class Panel {
             return true;
         }
         else {
-            console.log("pointer down not in panel")
+            // console.log("pointer down not in panel")
             return false;
         }
     }
