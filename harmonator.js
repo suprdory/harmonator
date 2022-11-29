@@ -1391,6 +1391,7 @@ function anim() {
     }
 
     if (hg.auto) { requestAnimationFrame(anim); }
+    // console.log("anim")
 }
 function setSize() {
     // console.log("Setting Size")
