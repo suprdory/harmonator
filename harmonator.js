@@ -53,6 +53,7 @@ class Point {
 class Panel {
     constructor(x, py, w, ph, txt) {
         this.active = true;
+        this.color=hg.color;
         this.x = x + uiBorder;
         this.y = py + uiBorder;
         this.w = w - 2 * uiBorder;
@@ -87,7 +88,7 @@ class Panel {
             // draw title
             if (this.txt) {
                 ctx.beginPath();
-                ctx.strokeStyle = hg.color;
+                ctx.strokeStyle = this.color;
                 ctx.lineWidth = baseLW * 2.0;
                 ctx.rect(this.x, this.py, this.w, this.titH)
                 ctx.stroke();
@@ -100,7 +101,7 @@ class Panel {
             }
             //main border
             ctx.beginPath();
-            ctx.strokeStyle = hg.color;
+            ctx.strokeStyle = this.color;
             ctx.lineWidth = baseLW * 2;
             ctx.rect(this.x, this.py, this.w, this.ph)
             ctx.stroke();
@@ -1526,15 +1527,43 @@ function randomize() {
 
     let freqs = [-1, -1, -1, -1, -1, -2, -2, -2, -2, -3, -3, -3, -4, -4, -5, -6,
         0, 0, 0, 1, 1, 1, 1, 1, 2, 2, 2, 2, 3, 3, 3, 4, 4, 5, 6,]
+    let freqsno0 = [-1, -1, -1, -1, -1, -2, -2, -2, -2, -3, -3, -3, -4, -4, -5, -6,
+         1, 1, 1, 1, 1, 2, 2, 2, 2, 3, 3, 3, 4, 4, 5, 6,]
+    let freqHue=[0,0,1,1,1,1,2,2,3]
 
+    let decays=[0.001,0.002,0.003,0.005,0.009,0.0099,0.01,0.011,0.012,0.02,0.03,0.04,0.1]
+    let ts=[10,50,100,100,100,150,200,400]
+    let bools=[false,false,true]
+    let phases = [0.0,0.25,0.5,0.75,1.0]
+    let ampHues=[0,20,20,20,50,50,100]
+    let fineHues=[0,0.01,0.01,0.02]
     
-    oscX.f = freqs.random()
-    oscY.f = freqs.random()
-    oscXrot.f = freqs.random()
+    oscHue.a=ampHues.random();
+
+    oscX.f = freqs.random();
+    oscY.f = freqs.random();
+    oscXrot.f = freqsno0.random();
+    oscHue.f=freqHue.random();
+    oscHue.df=fineHues.random();
+
+    oscX.d=decays.random();
+    oscX.autop=bools.random();
+    oscY.autop = bools.random();
+    oscXrot.autop = bools.random();
+    oscHue.autop = bools.random();
+    oscX.p=phases.random();
+    oscY.p = phases.random();
+    oscXrot.p = phases.random();
+    oscHue.p = phases.random();
+
+    hg.t1=ts.random();
     
 
     canvas.style.backgroundColor = bgFillStyle
     hg.hue = hueInit
+    hg.setColor();
+    panelArray.forEach(panel => panel.color=hg.color)
+    setGallerySubmitHTML();
 }
 
 const canvas = document.getElementById("cw");
