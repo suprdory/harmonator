@@ -1,7 +1,7 @@
 Array.prototype.random = function () {
     return this[Math.floor((Math.random() * this.length))];
 }
-
+let log = console.log;
 class Oscillator {
     constructor(a, f, p, d) {
         this.a = a; // amplitude
@@ -42,6 +42,28 @@ class Oscillator {
     toggleAuto() {
         this.autop = !this.autop;
     }
+    toSSobj() {
+        let ss = {};
+        ss.a = this.a;
+        ss.p = this.p;
+        ss.f = this.f;
+        ss.df = this.df;
+        ss.d = this.d;
+        ss.z = this.z;
+        ss.autop=this.autop;
+        return ss;
+    }
+    fromSSobj(ss) {
+        log(ss)
+
+        this.a = ss.a;
+        this.p = ss.p;
+        this.f = ss.f;
+        this.df = ss.df;
+        this.d = ss.d;
+        this.z = ss.z;
+        this.autop=ss.autop;
+    }
 }
 class Point {
     constructor(x, y, hue) {
@@ -53,7 +75,7 @@ class Point {
 class Panel {
     constructor(x, py, w, ph, txt) {
         this.active = true;
-        this.color=hg.color;
+        this.color = hg.color;
         this.x = x + uiBorder;
         this.y = py + uiBorder;
         this.w = w - 2 * uiBorder;
@@ -138,6 +160,8 @@ class Panel {
     pointerUp(x, y) {
         if (this.active) {
             this.buttonArray.forEach(button => button.pointerUp(x, y))
+
+
         }
     }
     pointerMove(x, y) {
@@ -296,6 +320,11 @@ function pointerUpHandler(xc, yc) {
 
     panelArray.forEach(panel => panel.pointerUp(x, y))
     if (!hg.auto) { requestAnimationFrame(anim); }
+
+    console.log("pointer up in active panel, saving state to local storage")
+    let stateJSON = state2json()
+    localStorage.setItem("so", stateJSON)
+
 }
 function doubleClickHandler(x, y) {
     panelArray.forEach(panel => panel.pointerDoubleClick(x, y))
@@ -1528,43 +1557,83 @@ function randomize() {
     let freqs = [-1, -1, -1, -1, -1, -2, -2, -2, -2, -3, -3, -3, -4, -4, -5, -6,
         0, 0, 0, 1, 1, 1, 1, 1, 2, 2, 2, 2, 3, 3, 3, 4, 4, 5, 6,]
     let freqsno0 = [-1, -1, -1, -1, -1, -2, -2, -2, -2, -3, -3, -3, -4, -4, -5, -6,
-         1, 1, 1, 1, 1, 2, 2, 2, 2, 3, 3, 3, 4, 4, 5, 6,]
-    let freqHue=[0,0,1,1,1,1,2,2,3]
+        1, 1, 1, 1, 1, 2, 2, 2, 2, 3, 3, 3, 4, 4, 5, 6,]
+    let freqHue = [0, 0, 1, 1, 1, 1, 2, 2, 3]
 
-    let decays=[0.001,0.002,0.003,0.005,0.009,0.0099,0.01,0.011,0.012,0.02,0.03,0.04,0.1]
-    let ts=[10,50,100,100,100,150,200,400]
-    let bools=[false,false,true]
-    let phases = [0.0,0.25,0.5,0.75,1.0]
-    let ampHues=[0,20,20,20,50,50,100]
-    let fineHues=[0,0.01,0.01,0.02]
-    
-    oscHue.a=ampHues.random();
+    let decays = [0.001, 0.002, 0.003, 0.005, 0.009, 0.0099, 0.01, 0.011, 0.012, 0.02, 0.03, 0.04, 0.1]
+    let ts = [10, 50, 100, 100, 100, 150, 200, 400]
+    let bools = [false, false, true]
+    let phases = [0.0, 0.25, 0.5, 0.75, 1.0]
+    let ampHues = [0, 20, 20, 20, 50, 50, 100]
+    let fineHues = [0, 0.01, 0.01, 0.02]
+
+    oscHue.a = ampHues.random();
 
     oscX.f = freqs.random();
     oscY.f = freqs.random();
     oscXrot.f = freqsno0.random();
-    oscHue.f=freqHue.random();
-    oscHue.df=fineHues.random();
+    oscHue.f = freqHue.random();
+    oscHue.df = fineHues.random();
 
-    oscX.d=decays.random();
-    oscX.autop=bools.random();
+    oscX.d = decays.random();
+    oscX.autop = bools.random();
     oscY.autop = bools.random();
     oscXrot.autop = bools.random();
     oscHue.autop = bools.random();
-    oscX.p=phases.random();
+    oscX.p = phases.random();
     oscY.p = phases.random();
     oscXrot.p = phases.random();
     oscHue.p = phases.random();
 
-    hg.t1=ts.random();
-    
+    hg.t1 = ts.random();
+
 
     canvas.style.backgroundColor = bgFillStyle
     hg.hue = hueInit
     hg.setColor();
-    panelArray.forEach(panel => panel.color=hg.color)
+    panelArray.forEach(panel => panel.color = hg.color)
     setGallerySubmitHTML();
+
+    //save state to local storage
+    let stateJSON = state2json()
+    localStorage.setItem("so", stateJSON)
 }
+function state2json() {
+    let so;
+    so = {};
+    so.envCols = {}
+    so.envCols.bgFillStyle = bgFillStyle
+    so.envCols.bgFillStyleAlpha = bgFillStyleAlpha
+    so.envCols.fgFillStyle = fgFillStyle
+    so.envCols.fgFillStyleAlpha = fgFillStyleAlpha
+    so.envCols.hue = hg.hue;
+    so.oscX = oscX.toSSobj();
+    so.oscY = oscY.toSSobj();
+    so.oscXrot = oscXrot.toSSobj();
+    so.oscHue=oscHue.toSSobj();
+
+    return JSON.stringify(so)
+}
+function json2state(json) {
+    let so = JSON.parse(json); //state object
+    oscX.fromSSobj(so.oscX);
+    oscY.fromSSobj(so.oscY);
+    oscXrot.fromSSobj(so.oscXrot);
+    oscHue.fromSSobj(so.oscHue);
+
+    bgFillStyle = so.envCols.bgFillStyle
+    bgFillStyleAlpha = so.envCols.bgFillStyleAlpha
+    fgFillStyle = so.envCols.fgFillStyle
+    fgFillStyleAlpha = so.envCols.fgFillStyleAlpha
+    hg.hue = so.envCols.hue
+
+    canvas.style.backgroundColor = bgFillStyle
+    hg.setColor();
+    panelArray.forEach(panel => panel.color = hg.color)
+    setGallerySubmitHTML();
+    return so;
+}
+
 
 const canvas = document.getElementById("cw");
 const ctx = canvas.getContext("2d");
@@ -1617,6 +1686,17 @@ setSize();
 wakeGalleryServer()
 setGallerySubmitHTML();
 addPointerListeners();
-randomize();
-anim();
 
+
+so = localStorage.getItem("so")
+if (so) {
+    log("ls state exists:", so)
+    json2state(so)
+}
+else {
+    let stateJSON = state2json()
+    localStorage.setItem("so", stateJSON)
+}
+
+
+anim();
