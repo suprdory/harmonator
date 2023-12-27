@@ -1518,18 +1518,23 @@ function toggleDocs() {
 
 }
 function randomize() {
+    hueInit = Math.random() * 360
+    bgFillStyle = "hsl(" + hueInit + ",100%,5%)";
+    bgFillStyleAlpha = "hsla(" + hueInit + ",100%,5%,.80)";
+    fgFillStyle = "hsl(" + hueInit + ",100%,5%)";
+    fgFillStyleAlpha = "hsla(" + hueInit + ",100%,50%,.50)";
+
     let freqs = [-1, -1, -1, -1, -1, -2, -2, -2, -2, -3, -3, -3, -4, -4, -5, -6,
         0, 0, 0, 1, 1, 1, 1, 1, 2, 2, 2, 2, 3, 3, 3, 4, 4, 5, 6,]
+
+    
     oscX.f = freqs.random()
     oscY.f = freqs.random()
     oscXrot.f = freqs.random()
+    
 
-
-    const hueInit = Math.random() * 360
-    const bgFillStyle = "hsl(" + hueInit + ",100%,5%)";
-    const bgFillStyleAlpha = "hsla(" + hueInit + ",100%,5%,.80)";
-    const fgFillStyle = "hsl(" + hueInit + ",100%,5%)";
-    const fgFillStyleAlpha = "hsla(" + hueInit + ",100%,50%,.50)";
+    canvas.style.backgroundColor = bgFillStyle
+    hg.hue = hueInit
 }
 
 const canvas = document.getElementById("cw");
