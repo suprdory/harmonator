@@ -4,13 +4,13 @@ Array.prototype.random = function () {
 
 class Oscillator {
     constructor(a, f, p, d) {
-        this.a = a;
-        this.f = f;
-        this.df = 0;
-        this.p = p;
-        this.d = d;
-        this.autop = false;
-        this.z = 0
+        this.a = a; // amplitude
+        this.f = f; // frequency (integer)
+        this.df = 0; // frequency (delta)
+        this.p = p; // phase
+        this.d = d; // decay rate
+        this.autop = false; // auto phase
+        this.z = 0 // dc offset
     }
     val(t) {
         return baseAmp * this.a * Math.sin((this.f + this.df) * t + this.p * 6.28318530718) * Math.exp(-this.d * t);
@@ -505,21 +505,24 @@ function createTopPanel(oSx, oSy) {
     w = Math.min(1 * panelWidth, .5 * uiX * 1 / 5);
     let panel = new Panel(oSx, oSy, w, uiY);
     panel.anyClickActivates = true;
-
     panel.buttonArray.push(
-        new PButton(panel, 0.0, 0.333, 1, 0.333, "Share",
+        new PButton(panel, 0.0, 0.0, 1, 0.25, "?",
+            function () { toggleDocs(); })
+    );
+    panel.buttonArray.push(
+        new PButton(panel, 0.0, 0.25, 1, 0.25, "share",
             function () { sharePanel.active = true; })
     );
     panel.buttonArray.push(
-        new PButton(panel, 0.0, 0.666, 1, 0.333, "Hide",
+        new PButton(panel, 0.0, 0.50, 1, 0.25, "hide",
             function () {
                 showWheels = false;
                 panelArray.forEach(panel => panel.active = false)
             })
     );
     panel.buttonArray.push(
-        new PButton(panel, 0.0, 0.0, 1, 0.333, "?",
-            function () { toggleDocs(); })
+        new PButton(panel, 0.0, 0.75, 1, 0.25, "random",
+            function () { randomize(); })
     );
 
     return (panel)
@@ -1514,6 +1517,20 @@ function toggleDocs() {
 
 
 }
+function randomize() {
+    let freqs = [-1, -1, -1, -1, -1, -2, -2, -2, -2, -3, -3, -3, -4, -4, -5, -6,
+        0, 0, 0, 1, 1, 1, 1, 1, 2, 2, 2, 2, 3, 3, 3, 4, 4, 5, 6,]
+    oscX.f = freqs.random()
+    oscY.f = freqs.random()
+    oscXrot.f = freqs.random()
+
+
+    const hueInit = Math.random() * 360
+    const bgFillStyle = "hsl(" + hueInit + ",100%,5%)";
+    const bgFillStyleAlpha = "hsla(" + hueInit + ",100%,5%,.80)";
+    const fgFillStyle = "hsl(" + hueInit + ",100%,5%)";
+    const fgFillStyleAlpha = "hsla(" + hueInit + ",100%,50%,.50)";
+}
 
 const canvas = document.getElementById("cw");
 const ctx = canvas.getContext("2d");
@@ -1535,11 +1552,11 @@ let showgalleryForm = false;
 let showDocs = false;
 
 const shareBorderfrac = 0.15;
-const hueInit = Math.random() * 360
-const bgFillStyle = "hsl(" + hueInit + ",100%,5%)";
-const bgFillStyleAlpha = "hsla(" + hueInit + ",100%,5%,.80)";
-const fgFillStyle = "hsl(" + hueInit + ",100%,5%)";
-const fgFillStyleAlpha = "hsla(" + hueInit + ",100%,50%,.50)";
+let hueInit = Math.random() * 360
+let bgFillStyle = "hsl(" + hueInit + ",100%,5%)";
+let bgFillStyleAlpha = "hsla(" + hueInit + ",100%,5%,.80)";
+let fgFillStyle = "hsl(" + hueInit + ",100%,5%)";
+let fgFillStyleAlpha = "hsla(" + hueInit + ",100%,50%,.50)";
 const transCol = "rgb(128,128,128,0.4)"
 const uiTextColor = "white"
 const uiBorder = 5;
@@ -1555,8 +1572,8 @@ var curDiff = 0;
 var dDiff = 0;
 
 let nOscButtons = 22
-oscX = new Oscillator(1.0, 1, 0.0, 0.01);
-oscY = new Oscillator(1.0, 2, 0.0, 0.01);
+let oscX = new Oscillator(1.0, 1, 0.0, 0.01);
+let oscY = new Oscillator(1.0, 2, 0.0, 0.01);
 oscXrot = new Oscillator(0.3, 1, 0, 0.001);
 oscYrot = new Oscillator(0.0, 1, 0.25, 0.001);
 oscHue = new Oscillator(20, 1, 0, 0);
@@ -1566,4 +1583,6 @@ setSize();
 wakeGalleryServer()
 setGallerySubmitHTML();
 addPointerListeners();
+randomize();
 anim();
+
