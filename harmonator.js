@@ -54,7 +54,7 @@ class Oscillator {
         return ss;
     }
     fromSSobj(ss) {
-        log(ss)
+        // log(ss)
 
         this.a = ss.a;
         this.p = ss.p;
@@ -148,7 +148,7 @@ class Panel {
             this.buttonArray.forEach(button => button.pointerDown(x, y))
         }
         if (this.active & x > this.x & x < this.x + this.w & y > this.py & y < this.py + this.ph) {
-            console.log("pointer down in panel")
+            // console.log("pointer down in panel")
             return true;
         }
         else {
@@ -321,9 +321,15 @@ function pointerUpHandler(xc, yc) {
     panelArray.forEach(panel => panel.pointerUp(x, y))
     if (!hg.auto) { requestAnimationFrame(anim); }
 
-    console.log("pointer up in active panel, saving state to local storage")
+    // console.log("pointer up in active panel, saving state to local storage")
     let stateJSON = state2json()
     localStorage.setItem("so", stateJSON)
+    if (urlArgMode) {
+        log('updating url')
+        const url = new URL(location);
+        url.searchParams.set("so", stateJSON);
+        history.pushState({}, "", url);
+    }
 
 }
 function doubleClickHandler(x, y) {
@@ -501,30 +507,34 @@ function uploadImage(name, comment) {
     }
 }
 function createSharePanel() {
-    xsize = 200 * pixRat;
-    ysize = 400 * pixRat;
+    let xsize = 200 * pixRat;
+    let ysize = 400 * pixRat;
     let panel = new Panel((X - xsize) / 2, (Y - ysize) / 2, xsize, ysize);
     panel.overlay = true;
     panel.wait = false;
     panel.active = false;
     panel.buttonArray.push(
-        new PButton(panel, 0.0, 0, 1, 0.1, ["Close"],
+        new PButton(panel, 0.0, 0, 1, 0.083, ["Close"],
             function () { panel.active = false; })
     );
     panel.buttonArray.push(
-        new PButton(panel, 0.1, .2, .8, 0.1, ["Share Image"],
+        new PButton(panel, 0.1, 0.1666, .8, 0.083, ["Share URL"],
+            function () { shareURL(); })
+    );
+    panel.buttonArray.push(
+        new PButton(panel, 0.1, .3333, .8, 0.083, ["Share Image"],
             function () { shareImage(); })
     );
     panel.buttonArray.push(
-        new PButton(panel, 0.1, .4, .8, 0.1, ["Download Image"],
+        new PButton(panel, 0.1, .5000, .8, 0.083, ["Download Image"],
             function () { downloadImage(); })
     );
     panel.buttonArray.push(
-        new PButton(panel, 0.1, .6, .8, 0.1, ["Upload to Gallery"],
+        new PButton(panel, 0.1, .6666, .8, 0.083, ["Upload to Gallery"],
             function () { toggleGalleryForm() })
     );
     panel.buttonArray.push(
-        new PButton(panel, 0.1, .8, .8, 0.1, ["View Gallery"],
+        new PButton(panel, 0.1, .83333, .8, 0.083, ["View Gallery"],
             function () { window.location.href = 'gallery.html' })
     );
 
@@ -1594,23 +1604,31 @@ function randomize() {
     panelArray.forEach(panel => panel.color = hg.color)
     setGallerySubmitHTML();
 
-    //save state to local storage
-    let stateJSON = state2json()
-    localStorage.setItem("so", stateJSON)
+    // //save state to local storage
+    // let stateJSON = state2json()
+    // localStorage.setItem("so", stateJSON)
+    // //update url if in urlArg mode
+    // if (urlArgMode){
+    //     log('updating url')
+    //     const url = new URL(location);
+    //     url.searchParams.set("so", stateJSON);
+    //     history.pushState({}, "", url);
+    // }
 }
 function state2json() {
     let so;
     so = {};
+   
+    so.oscX = oscX.toSSobj();
+    so.oscY = oscY.toSSobj();
+    so.oscXrot = oscXrot.toSSobj();
+    so.oscHue=oscHue.toSSobj();
     so.envCols = {}
     so.envCols.bgFillStyle = bgFillStyle
     so.envCols.bgFillStyleAlpha = bgFillStyleAlpha
     so.envCols.fgFillStyle = fgFillStyle
     so.envCols.fgFillStyleAlpha = fgFillStyleAlpha
     so.envCols.hue = hg.hue;
-    so.oscX = oscX.toSSobj();
-    so.oscY = oscY.toSSobj();
-    so.oscXrot = oscXrot.toSSobj();
-    so.oscHue=oscHue.toSSobj();
 
     return JSON.stringify(so)
 }
@@ -1632,6 +1650,13 @@ function json2state(json) {
     panelArray.forEach(panel => panel.color = hg.color)
     setGallerySubmitHTML();
     return so;
+}
+function shareURL(){
+    let url = window.location.href
+    url=url+'/?so='+state2json();
+    let shareData={'url':url}
+    log(shareData)
+    navigator.share(shareData)
 }
 
 
@@ -1688,14 +1713,26 @@ setGallerySubmitHTML();
 addPointerListeners();
 
 
+
+
 so = localStorage.getItem("so")
 if (so) {
-    log("ls state exists:", so)
+    // log("ls state exists:", so)
     json2state(so)
 }
 else {
     let stateJSON = state2json()
     localStorage.setItem("so", stateJSON)
+}
+
+const queryString = window.location.search;
+const urlParams = new URLSearchParams(queryString);
+let urlArgMode=false;
+let urlso = urlParams.get('so')
+if (urlso){
+    // log('url arg mode',urlso);
+    urlArgMode=true;
+    json2state(urlso)
 }
 
 
