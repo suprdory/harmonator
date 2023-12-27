@@ -1653,7 +1653,7 @@ function json2state(json) {
 }
 function shareURL(){
     let url = window.location.href
-    url=url+'/?so='+state2json();
+    url=url+'?so='+state2json();
     let shareData={'url':url}
     log(shareData)
     navigator.share(shareData)
@@ -1733,6 +1733,8 @@ if (urlso){
     // log('url arg mode',urlso);
     urlArgMode=true;
     json2state(urlso)
+    showWheels = false;
+    panelArray.forEach(panel => panel.active = false)
 }
 
 
