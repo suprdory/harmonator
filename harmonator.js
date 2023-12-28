@@ -324,12 +324,17 @@ function pointerUpHandler(xc, yc) {
     // console.log("pointer up in active panel, saving state to local storage")
     let stateJSON = state2json()
     localStorage.setItem("so", stateJSON)
-    if (urlArgMode) {
-        log('updating url')
-        const url = new URL(location);
-        url.searchParams.set("so", stateJSON);
-        history.pushState({}, "", url);
-    }
+    
+    // if (urlArgMode) {
+    //     log('updating url')
+    //     const url = new URL(location);
+    //     url.searchParams.set("so", stateJSON);
+    //     history.pushState({}, "", url);
+    // }
+    const url = new URL(location);
+    url.searchParams.delete('skey')
+    history.pushState({}, "",url);
+
 
 }
 function doubleClickHandler(x, y) {
@@ -1642,17 +1647,17 @@ function state2json() {
     so.hg.t1 = hg.t1;
     so.hg.t0 = hg.t0;
     so.hg.dt = hg.dt;
-    
+
     let stateString = JSON.stringify(so)
-    stateString = stateString.replace(/"/g, "~")
-    stateString = stateString.replace(/{/g, "_")
-    stateString = stateString.replace(/}/g, "Z")
+    // stateString = stateString.replace(/"/g, "~")
+    // stateString = stateString.replace(/{/g, "_")
+    // stateString = stateString.replace(/}/g, "Z")
     return stateString
 }
 function json2state(json) {
-    json = json.replace(/~/g, "\"")
-    json = json.replace(/Z/g, "}")
-    json = json.replace(/_/g, "{")
+    // json = json.replace(/~/g, "\"")
+    // json = json.replace(/Z/g, "}")
+    // json = json.replace(/_/g, "{")
     let so = JSON.parse(json); //state object
 
     //set oscillator states
@@ -1680,11 +1685,41 @@ function json2state(json) {
     return so;
 }
 function shareURL() {
+    console.log('wait')
+    sharePanel.wait = true;
+    if (!hg.auto) { requestAnimationFrame(anim); }
+
+
     let url = window.location.href
-    url = url + '?so=' + state2json();
-    let shareData = { 'url': url }
-    log(shareData)
-    navigator.share(shareData)
+    // url = url + '?so=' + state2json();
+    // let shareData = { 'url': url }
+    // log(shareData)
+    // navigator.share(shareData)
+
+    let formData = new FormData();
+    formData.append('version', "v01");
+    formData.append('state', state2json());
+    fetch(galleryAPIurl + '/post_state', {
+        method: 'POST',
+        // WARNING!!!! DO NOT set Content Type!
+        // headers: { 'Content-Type': 'multipart/form-data' },
+        body: formData,
+    })
+        .then(response => response.json())
+        .then(data => {
+            console.log(data);
+            url = url + '?skey=' + data.key;
+            let shareData = { 'url': url }
+            navigator.share(shareData)
+            console.log('unwait')
+            sharePanel.wait = false;
+            if (!hg.auto) { requestAnimationFrame(anim); }
+        })
+        .catch((error) => {
+            console.error('Error:', error);
+            sharePanel.wait = false;
+            if (!hg.auto) { requestAnimationFrame(anim); }
+        })
 }
 
 
@@ -1740,9 +1775,6 @@ wakeGalleryServer()
 setGallerySubmitHTML();
 addPointerListeners();
 
-
-
-
 so = localStorage.getItem("so")
 if (so) {
     // log("ls state exists:", so)
@@ -1755,16 +1787,46 @@ else {
 
 const queryString = window.location.search;
 const urlParams = new URLSearchParams(queryString);
-let urlArgMode = false;
-let urlso = urlParams.get('so')
-if (urlso) {
-    // log('url arg mode',urlso);
-    urlArgMode = true;
-    json2state(urlso)
-    showWheels = false;
-    panelArray.forEach(panel => panel.active = false)
+
+// let urlArgMode = false;
+// let urlso = urlParams.get('so')
+// if (urlso) {
+//     // log('url arg mode',urlso);
+//     urlArgMode = true;
+//     json2state(urlso)
+//     showWheels = false;
+//     panelArray.forEach(panel => panel.active = false)
+// }
+let urlskey = urlParams.get('skey')
+if (urlskey) {
+    log("skey:", urlskey)
+    console.log('wait')
+    sharePanel.wait = true;
+    if (!hg.auto) { requestAnimationFrame(anim); }
+
+    log("get url:", galleryAPIurl + '/get_state?skey=' + urlskey)
+
+    fetch(galleryAPIurl + '/get_state?skey=' + urlskey, {
+        method: 'GET',
+        // WARNING!!!! DO NOT set Content Type!
+        // headers: { 'Content-Type': 'multipart/form-data' },
+
+    })
+        .then(response => response.json())
+        .then(data => {
+            console.log(data);
+            json2state(JSON.stringify(data));
+            showWheels = false;
+            panelArray.forEach(panel => panel.active = false)
+            console.log('unwait')
+            sharePanel.wait = false;
+            if (!hg.auto) { requestAnimationFrame(anim); }
+        })
+        .catch((error) => {
+            console.error('Error:', error);
+            sharePanel.wait = false;
+            if (!hg.auto) { requestAnimationFrame(anim); }
+        })
 }
-
-
 anim();
-log(state2json())
+// log(state2json())
