@@ -50,7 +50,7 @@ class Oscillator {
         ss.df = this.df;
         ss.d = this.d;
         ss.z = this.z;
-        ss.autop=this.autop;
+        ss.autop = this.autop;
         return ss;
     }
     fromSSobj(ss) {
@@ -62,7 +62,7 @@ class Oscillator {
         this.df = ss.df;
         this.d = ss.d;
         this.z = ss.z;
-        this.autop=ss.autop;
+        this.autop = ss.autop;
     }
 }
 class Point {
@@ -1581,6 +1581,9 @@ function randomize() {
 
     oscX.f = freqs.random();
     oscY.f = freqs.random();
+    oscX.df = 0;
+    oscY.df = 0;
+    oscXrot.df = 0;
     oscXrot.f = freqsno0.random();
     oscHue.f = freqHue.random();
     oscHue.df = fineHues.random();
@@ -1594,8 +1597,11 @@ function randomize() {
     oscY.p = phases.random();
     oscXrot.p = phases.random();
     oscHue.p = phases.random();
+    oscHue.z = 0;
 
     hg.t1 = ts.random();
+    hg.dt = 0.05;
+    hg.t0 = 0;
 
 
     canvas.style.backgroundColor = bgFillStyle
@@ -1615,35 +1621,57 @@ function randomize() {
     //     history.pushState({}, "", url);
     // }
 }
+
+//////////////////////// WARNING!! no "Z", "~", or "_" allowed in any state persistant variable names //////////////////
+///////////////// as they are used as special charachters to encode JSON in url param string //////////
 function state2json() {
     let so;
     so = {};
-   
+
     so.oscX = oscX.toSSobj();
     so.oscY = oscY.toSSobj();
     so.oscXrot = oscXrot.toSSobj();
-    so.oscHue=oscHue.toSSobj();
-    so.envCols = {}
-    so.envCols.bgFillStyle = bgFillStyle
-    so.envCols.bgFillStyleAlpha = bgFillStyleAlpha
-    so.envCols.fgFillStyle = fgFillStyle
-    so.envCols.fgFillStyleAlpha = fgFillStyleAlpha
-    so.envCols.hue = hg.hue;
-
-    return JSON.stringify(so)
+    so.oscHue = oscHue.toSSobj();
+    so.env = {}
+    so.env.bgFillStyle = bgFillStyle
+    so.env.bgFillStyleAlpha = bgFillStyleAlpha
+    so.env.fgFillStyle = fgFillStyle
+    so.env.fgFillStyleAlpha = fgFillStyleAlpha
+    so.hg = {}
+    so.hg.hue = hg.hue;
+    so.hg.t1 = hg.t1;
+    so.hg.t0 = hg.t0;
+    so.hg.dt = hg.dt;
+    
+    let stateString = JSON.stringify(so)
+    stateString = stateString.replace(/"/g, "~")
+    stateString = stateString.replace(/{/g, "_")
+    stateString = stateString.replace(/}/g, "Z")
+    return stateString
 }
 function json2state(json) {
+    json = json.replace(/~/g, "\"")
+    json = json.replace(/Z/g, "}")
+    json = json.replace(/_/g, "{")
     let so = JSON.parse(json); //state object
+
+    //set oscillator states
     oscX.fromSSobj(so.oscX);
     oscY.fromSSobj(so.oscY);
     oscXrot.fromSSobj(so.oscXrot);
     oscHue.fromSSobj(so.oscHue);
 
-    bgFillStyle = so.envCols.bgFillStyle
-    bgFillStyleAlpha = so.envCols.bgFillStyleAlpha
-    fgFillStyle = so.envCols.fgFillStyle
-    fgFillStyleAlpha = so.envCols.fgFillStyleAlpha
-    hg.hue = so.envCols.hue
+    // set environmental params
+    bgFillStyle = so.env.bgFillStyle
+    bgFillStyleAlpha = so.env.bgFillStyleAlpha
+    fgFillStyle = so.env.fgFillStyle
+    fgFillStyleAlpha = so.env.fgFillStyleAlpha
+
+    // set hg params
+    hg.hue = so.hg.hue
+    hg.t0 = so.hg.t0
+    hg.t1 = so.hg.t1
+    hg.dt = so.hg.dt
 
     canvas.style.backgroundColor = bgFillStyle
     hg.setColor();
@@ -1651,10 +1679,10 @@ function json2state(json) {
     setGallerySubmitHTML();
     return so;
 }
-function shareURL(){
+function shareURL() {
     let url = window.location.href
-    url=url+'?so='+state2json();
-    let shareData={'url':url}
+    url = url + '?so=' + state2json();
+    let shareData = { 'url': url }
     log(shareData)
     navigator.share(shareData)
 }
@@ -1727,11 +1755,11 @@ else {
 
 const queryString = window.location.search;
 const urlParams = new URLSearchParams(queryString);
-let urlArgMode=false;
+let urlArgMode = false;
 let urlso = urlParams.get('so')
-if (urlso){
+if (urlso) {
     // log('url arg mode',urlso);
-    urlArgMode=true;
+    urlArgMode = true;
     json2state(urlso)
     showWheels = false;
     panelArray.forEach(panel => panel.active = false)
@@ -1739,3 +1767,4 @@ if (urlso){
 
 
 anim();
+log(state2json())
