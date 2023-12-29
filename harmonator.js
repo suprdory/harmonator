@@ -1708,7 +1708,7 @@ function shareURL() {
         .then(response => response.json())
         .then(data => {
             console.log(data);
-            url = url + '?skey=' + data.key;
+            url = url + '?s=' + data.key;
             let shareData = { 'url': url }
             navigator.share(shareData)
             console.log('unwait')
@@ -1797,7 +1797,7 @@ const urlParams = new URLSearchParams(queryString);
 //     showWheels = false;
 //     panelArray.forEach(panel => panel.active = false)
 // }
-let urlskey = urlParams.get('skey')
+let urlskey = urlParams.get('s')
 if (urlskey) {
     log("skey:", urlskey)
     console.log('wait')
