@@ -1596,6 +1596,7 @@ function randomize() {
     oscHue.df = fineHues.random();
 
     oscX.d = decays.random();
+    oscXrot.d=0.001;
     oscX.autop = bools.random();
     oscY.autop = bools.random();
     oscXrot.autop = bools.random();
