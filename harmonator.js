@@ -1582,6 +1582,8 @@ function randomize() {
     let ampHues = [0, 20, 20, 20, 50, 50, 100]
     let fineHues = [0, 0.01, 0.01, 0.02]
 
+    oscX.a=1.0;
+    oscXrot.a=0.3;
     oscHue.a = ampHues.random();
 
     oscX.f = freqs.random();
