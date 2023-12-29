@@ -359,6 +359,10 @@ function zoomHandler(dW, xc, yc) {
     xOff = x - xt * scl
     yOff = y - yt * scl
 
+    // save save state after zoom change
+    let stateJSON = state2json()
+    localStorage.setItem("so", stateJSON)
+
 
 }
 function calcLCM(a, b) { //lowest common multiple
@@ -1414,6 +1418,7 @@ function createColPanel(osc, oscTxt, xPos, yPos) {
     return panel;
 }
 function anim() {
+    // log("scl",scl)
     linkOscCirc(oscXrot, oscYrot);
     linkOscAmp(oscX, oscY);
     linkOscDec(oscX, oscY);
@@ -1636,11 +1641,13 @@ function state2json() {
     let so;
     so = {};
 
+
     so.oscX = oscX.toSSobj();
     so.oscY = oscY.toSSobj();
     so.oscXrot = oscXrot.toSSobj();
     so.oscHue = oscHue.toSSobj();
     so.env = {}
+    so.env.scl=scl;
     so.env.bgFillStyle = bgFillStyle
     so.env.bgFillStyleAlpha = bgFillStyleAlpha
     so.env.fgFillStyle = fgFillStyle
@@ -1670,6 +1677,7 @@ function json2state(json) {
     oscHue.fromSSobj(so.oscHue);
 
     // set environmental params
+    scl=so.env.scl;
     bgFillStyle = so.env.bgFillStyle
     bgFillStyleAlpha = so.env.bgFillStyleAlpha
     fgFillStyle = so.env.fgFillStyle
