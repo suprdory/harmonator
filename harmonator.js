@@ -332,7 +332,7 @@ function pointerUpHandler(xc, yc) {
     //     history.pushState({}, "", url);
     // }
     const url = new URL(location);
-    url.searchParams.delete('skey')
+    url.searchParams.delete('s')
     history.pushState({}, "",url);
 
 
@@ -1635,7 +1635,6 @@ function randomize() {
     // }
 }
 
-//////////////////////// WARNING!! no "Z", "~", or "_" allowed in any state persistant variable names //////////////////
 ///////////////// as they are used as special charachters to encode JSON in url param string //////////
 function state2json() {
     let so;
