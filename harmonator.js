@@ -1550,19 +1550,22 @@ function setSize() {
     panelArray = [topPanel, colPanel, oscLpanel, oscXpanel, oscYpanel, oscRpanel, timePanel, sharePanel];
 }
 function toggleDocs() {
-    docs = document.getElementById("docs").style;
-    // console.log(form.visibility)
-    if (!(docs.visibility == "visible")) {
-        docs.visibility = "visible"
+    let docs = document.getElementById("docs").style;
+    let docsCompVis = getComputedStyle(document.getElementById("docs")).visibility
+    if (docsCompVis == "hidden") {
+        log('docs hidden, making visible')
+        docs.visibility = "visible";
         showDocs = true;
+        localStorage.setItem('showDocs', true);
     }
     else {
-        docs.visibility = "hidden"
+        log('docs visible, hiding')
+        docs.visibility = "hidden";
         showDocs = false;
+        localStorage.setItem('showDocs', false);
         if (!hg.auto) {
             anim();
         }
-
     }
 
 
@@ -1750,7 +1753,7 @@ let showInfo = false;
 let showRadInfo = false;
 let showColInfo = false;
 let showgalleryForm = false;
-let showDocs = false;
+let showDocs = true;
 
 const shareBorderfrac = 0.15;
 let hueInit = Math.random() * 360
@@ -1838,5 +1841,15 @@ if (urlskey) {
             if (!hg.auto) { requestAnimationFrame(anim); }
         })
 }
+
+if (localStorage.getItem('showDocs') == null) {
+    log("showDocs not set, setting true")
+    localStorage.setItem('showDocs', true)
+}
+if (!(localStorage.getItem('showDocs') == "true")) {
+    toggleDocs();
+}
+
+
 anim();
 // log(state2json())
