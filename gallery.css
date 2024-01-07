@@ -51,12 +51,13 @@
   text-align: center;
   margin-left: auto;
   margin-top: 0;
+  margin-bottom: 0;
  }
 
  .backLink {
-  position: absolute;
+  /* position: absolute;
   margin-left: 2.5%;
-  margin-top: 0.5%;
+  margin-top: 0.5%; */
   color: white;
   /* text-align: center;
   margin-left: auto; */
@@ -74,3 +75,6 @@ a:hover {
 a:active { 
   text-decoration: none; 
 }
+div.centred {
+  text-align: center;
+ }
