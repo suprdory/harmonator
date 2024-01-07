@@ -1753,7 +1753,7 @@ let showInfo = false;
 let showRadInfo = false;
 let showColInfo = false;
 let showgalleryForm = false;
-let showDocs = true;
+let showDocs = false;
 
 const shareBorderfrac = 0.15;
 let hueInit = Math.random() * 360
@@ -1842,13 +1842,14 @@ if (urlskey) {
         })
 }
 
-if (localStorage.getItem('showDocs') == null) {
-    log("showDocs not set, setting true")
-    localStorage.setItem('showDocs', true)
-}
-if (!(localStorage.getItem('showDocs') == "true")) {
+if ((localStorage.getItem('showDocs') == null)|(localStorage.getItem('showDocs') == "true")) {
+    log("showDocs not set, or true, setting true")
+    // localStorage.setItem('showDocs', true)
     toggleDocs();
 }
+// if (!(localStorage.getItem('showDocs') == "true")) {
+//     toggleDocs();
+// }
 
 
 anim();
