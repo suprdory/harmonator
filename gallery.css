@@ -41,6 +41,12 @@
    font-size: var(--commentSize);
  }
 
+ .delButton{
+  padding: 2%;
+ margin: 0 0 0 0;
+
+}
+
  h1 {
   text-align: center;
   margin-left: auto;
