@@ -3,6 +3,7 @@
    /* --fgColor: #e40000; */
    --nameSize: 10px;
    --commentSize: 10px;
+   background-color: rgb(0, 0, 0);
  }
 
  #cw {
@@ -50,15 +51,20 @@
  h1 {
   text-align: center;
   margin-left: auto;
-  margin-top: 0;
-  margin-bottom: 0;
+  /* background-color: aqua; */
+  /* margin-top: 0; */
+  /* margin-bottom: 0; */
+  font-size: large;
  }
 
  .backLink {
-  /* position: absolute;
+  position: absolute;
   margin-left: 2.5%;
-  margin-top: 0.5%; */
+  /* margin-top: 0px; */
+  /* border-top: 0%; */
+  /* padding-top: 0; */
   color: white;
+  font-size: large;
   /* text-align: center;
   margin-left: auto; */
  }
