@@ -404,6 +404,134 @@ function drawSquareFullImage(n = 1920) {
     baseLW = baseLWtemp;
     return (canvasSh)
 }
+function downloadSVG() {
+    if (hg.points.length > 0) {
+        let date = new Date().toJSON();
+        // console.log(date); // 2022-06-17T11:06:50.369Z
+        sharePanel.wait = true;
+        svgString = createSVGstring();
+        var blob = new Blob([svgString]);
+        let file = new File(
+            [blob],
+            "harmonata-" + date + ".svg",
+            {
+                type: "image/svg",
+                lastModified: new Date().getTime()
+            }
+        );
+        downloadFile(file);
+        sharePanel.wait = false;
+        anim()
+
+    }
+}
+
+function createSVGstring() {
+
+    let tracesBounds = hg.getBounds();
+    let viewscale = 1.05;
+    let twidth = tracesBounds.xmax - tracesBounds.xmin;
+    let theight = tracesBounds.ymax - tracesBounds.ymin;
+    
+    let headString = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="'
+    headString += (tracesBounds.xmin - twidth * (viewscale - 1) / 2).toFixed(1) + ' ' + (tracesBounds.ymin - theight * (viewscale - 1) / 2).toFixed(1) + ' '
+    headString += (viewscale * twidth).toFixed(1) + ' ' + (viewscale * theight).toFixed(1) + '" '
+    headString += 'style="background-color:' + bgFillStyle + '"'
+    headString += '>'
+
+    let tailString = '</svg>'
+    let lineStrings=hg2linestrs(hg)
+    let outString = headString
+
+    outString+=lineStrings
+    outString = outString + tailString
+    return outString
+}
+
+function hg2linestrs(hg){
+    var x0 = hg.points[0].x;
+    var y0 = hg.points[0].y;
+    let alpha = 1;
+  
+    // line e.g.
+    //<line x1="30" y1="30" x2="30" y2="300" style="stroke:#4387be; stroke-width:10" />'
+    let outStr = ""
+
+
+    // draw soft start
+    let n = 0;
+    alpha = 0;
+    hg.points.slice(0, hg.softStart).forEach(point => {
+        n++;
+        alpha = (n / hg.softStart) ** 2;
+        let lineStr = '<line x1="' + x0 + '" y1="' + y0 + '" x2="' + point.x + '" y2="' + point.y
+        lineStr += '" stroke-linecap="butt" style="stroke:'
+        lineStr += "hsla(" + point.hue + ',' + hg.saturation + '%,' + hg.lightness + '%,' + alpha + '); stroke-width:1"/>'
+        outStr += lineStr
+        x0 = point.x;
+        y0 = point.y;
+    });
+    // if (hg.highQuality) {
+    //     ctx.lineCap = 'round';
+    // }
+
+    // draw main path
+    alpha = 1;
+    hg.points.slice(hg.softStart - 1, -hg.softStart).forEach(point => {
+        let lineStr = '<line x1="' + x0 + '" y1="' + y0 + '" x2="' + point.x + '" y2="' + point.y
+        lineStr += '" stroke-linecap="round" style="stroke:' 
+        lineStr+="hsla(" + point.hue + ',' + hg.saturation + '%,' + hg.lightness + '%,' + alpha + '); stroke-width:1"/>'
+        outStr+=lineStr
+        x0 = point.x;
+        y0 = point.y;
+    })
+
+    // draw soft end
+    // ctx.lineCap = 'butt';
+    n = hg.softStart;
+    // // ctx.beginPath();
+    x0 = hg.points.slice(-hg.softStart - 1)[0].x;
+    y0 = hg.points.slice(-hg.softStart - 1)[0].y;
+
+    // ctx.moveTo(this.points.slice(-this.softStart - 1)[0].x, this.points.slice(-this.softStart - 1)[0].y);
+    hg.points.slice(-hg.softStart).forEach(point => {
+        n--;
+        // console.log(n)
+        alpha = (n / hg.softStart) ** 2;
+        let lineStr = '<line x1="' + x0 + '" y1="' + y0 + '" x2="' + point.x + '" y2="' + point.y
+        lineStr += '" stroke-linecap="butt" style="stroke:'
+        lineStr += "hsla(" + point.hue + ',' + hg.saturation + '%,' + hg.lightness + '%,' + alpha + '); stroke-width:1"/>'
+        outStr += lineStr
+        x0 = point.x;
+        y0 = point.y;
+
+        // ctx.lineTo(point.x, point.y);
+        // ctx.stroke();
+        // ctx.beginPath();
+        // ctx.strokeStyle = "hsla(" + point.hue + "," + this.saturation + "%," + this.lightness + "%," + alpha + ")"
+        // ctx.moveTo(point.x, point.y);
+    })
+
+    return outStr
+
+    // else {
+    //     this.points.forEach(point => {
+    //         ctx.beginPath()
+    //         ctx.moveTo(x0, y0)
+    //         ctx.strokeStyle = "hsla(" + point.hue + "," + this.saturation + "%," + this.lightness + "%," + alpha + ")"
+    //         ctx.lineTo(point.x, point.y);
+    //         x0 = point.x;
+    //         y0 = point.y;
+    //         ctx.stroke();
+    //     })
+
+    // }
+
+    
+
+}
+
+
 function shareImage() {
     if (hg.points.length > 1) {
         sharePanel.wait = true;
@@ -515,6 +643,44 @@ function uploadImage(name, comment) {
         })
     }
 }
+// function createSharePanel() {
+//     let xsize = 200 * pixRat;
+//     let ysize = 400 * pixRat;
+//     let panel = new Panel((X - xsize) / 2, (Y - ysize) / 2, xsize, ysize);
+//     panel.overlay = true;
+//     panel.wait = false;
+//     panel.active = false;
+//     panel.buttonArray.push(
+//         new PButton(panel, 0.0, 0, 1, 0.083, ["Close"],
+//             function () { panel.active = false; })
+//     );
+//     panel.buttonArray.push(
+//         new PButton(panel, 0.1, 0.1666, .8, 0.083, ["Share URL"],
+//             function () { shareURL(); })
+//     );
+//     panel.buttonArray.push(
+//         new PButton(panel, 0.1, .3333, .8, 0.083, ["Share Image"],
+//             function () { shareImage(); })
+//     );
+//     panel.buttonArray.push(
+//         new PButton(panel, 0.1, .5000, .8, 0.083, ["Download Image"],
+//             function () { downloadImage(); })
+//     );
+//     panel.buttonArray.push(
+//         new PButton(panel, 0.1, .6666, .8, 0.083, ["Upload to Gallery"],
+//             function () { toggleGalleryForm() })
+//     );
+//     panel.buttonArray.push(
+//         new PButton(panel, 0.1, .83333, .8, 0.083, ["View Gallery"],
+//             function () { window.location.href = 'gallery.html' })
+//     );
+
+//     return (panel);
+
+// }
+
+let ybut = 0.0714
+let ybuts = 0.0714 * 2
 function createSharePanel() {
     let xsize = 200 * pixRat;
     let ysize = 400 * pixRat;
@@ -523,33 +689,41 @@ function createSharePanel() {
     panel.wait = false;
     panel.active = false;
     panel.buttonArray.push(
-        new PButton(panel, 0.0, 0, 1, 0.083, ["Close"],
+        new PButton(panel, 0.0, 0, 1, ybut, ["Close"],
             function () { panel.active = false; })
     );
     panel.buttonArray.push(
-        new PButton(panel, 0.1, 0.1666, .8, 0.083, ["Share URL"],
+        new PButton(panel, 0.1, ybuts, .8, ybut, ["Share URL"],
             function () { shareURL(); })
     );
     panel.buttonArray.push(
-        new PButton(panel, 0.1, .3333, .8, 0.083, ["Share Image"],
+        new PButton(panel, 0.1, ybuts * 2, .8, ybut, ["Share Image"],
             function () { shareImage(); })
     );
     panel.buttonArray.push(
-        new PButton(panel, 0.1, .5000, .8, 0.083, ["Download Image"],
+        new PButton(panel, 0.1, ybuts * 3, .8, ybut, ["Download Image"],
             function () { downloadImage(); })
     );
+
     panel.buttonArray.push(
-        new PButton(panel, 0.1, .6666, .8, 0.083, ["Upload to Gallery"],
+        new PButton(panel, 0.1, ybuts * 4, .8, ybut, ["Download SVG"],
+            function () { downloadSVG(); })
+    );
+
+    panel.buttonArray.push(
+        new PButton(panel, 0.1, ybuts * 5, .8, ybut, ["Upload to Gallery"],
             function () { toggleGalleryForm() })
     );
     panel.buttonArray.push(
-        new PButton(panel, 0.1, .83333, .8, 0.083, ["View Gallery"],
+        new PButton(panel, 0.1, ybuts * 6, .8, ybut, ["View Gallery"],
             function () { window.location.href = 'gallery.html' })
     );
 
     return (panel);
 
 }
+
+
 function createTopPanel(oSx, oSy) {
     w = Math.min(1 * panelWidth, .5 * uiX * 1 / 5);
     let panel = new Panel(oSx, oSy, w, uiY);
@@ -1851,6 +2025,6 @@ if ((localStorage.getItem('showDocs') == null)|(localStorage.getItem('showDocs')
 //     toggleDocs();
 // }
 
-
+// sharePanel.active = true;
 anim();
 // log(state2json())
